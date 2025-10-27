@@ -2,12 +2,26 @@
 
 # dependencies
 node_modules/
+package-lock.json
 
 # Expo
 .expo/
 dist/
 web-build/
 expo-env.d.ts
+
+# Nativewind
+nativewind-env.d.ts
+tailwind.config.js.map
+
+# Firebase
+firebase-debug.log
+google-services.json
+GoogleService-Info.plist
+
+# Environment
+.env
+.env*.local
 
 # Native
 .kotlin/
@@ -17,6 +31,7 @@ expo-env.d.ts
 *.p12
 *.key
 *.mobileprovision
+*.pem
 
 # Metro
 .metro-health-check*
@@ -28,15 +43,19 @@ yarn-error.*
 
 # macOS
 .DS_Store
-*.pem
+Thumbs.db
 
-# local env files
-.env*.local
+# IDE
+.vscode/
+.idea/
+*.code-workspace
 
 # typescript
 *.tsbuildinfo
 
+# local examples or experiments
 app-example
+scripts/local*
 
 # generated native folders
 /ios
