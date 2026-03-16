@@ -14,7 +14,7 @@ const MainLayout = () => {
         const inApp = segments[0] == '(app)';
         if (isAuthenticated && !inApp) {
             // redirect to home
-            router.replace('/home');
+            router.replace('/(app)/(tabs)/chats');
         } else if (isAuthenticated == false) {
             // redirect to app
             router.replace('/logIn');

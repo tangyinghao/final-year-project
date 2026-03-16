@@ -1,4 +1,4 @@
-import { Link } from 'expo-router'
+import { Link, useRouter } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import React from 'react'
 import { Pressable, Text, TextInput, View } from 'react-native'
@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import NTULogo from '../assets/images/NTULogo.svg'
 
 export default function logIn() {
+  const router = useRouter()
   return (
     <View className="flex-1 bg-white">
       <StatusBar style="dark" />
@@ -71,7 +72,11 @@ export default function logIn() {
                 </View>
               </View>
 
-              <Pressable style={{height: hp(6)}} className="h-12 items-center justify-center rounded-xl bg-[#121C5D]">
+              <Pressable 
+                style={{height: hp(6)}} 
+                className="h-12 items-center justify-center rounded-xl bg-[#121C5D]"
+                onPress={() => router.replace('/chats')}
+              >
                 <Text style={{fontSize: hp(2.1)}} className="text-white font-semibold">
                   Log In
                 </Text>
@@ -91,17 +96,13 @@ export default function logIn() {
                   </Link>
                 </View>
 
-                <Text style={{fontSize: hp(1.6)}} className="text-[#121C5D] font-semibold">
-                      Forgot Password?
-                </Text>
-
-                {/* <Link href="/register" asChild>
+                <Link href="/forgotPassword" asChild>
                   <Pressable hitSlop={8}>
-                    <Text style={{fontSize: hp(1.8)}} className="text-[#121C5D] font-semibold">
+                    <Text style={{fontSize: hp(1.6)}} className="text-[#121C5D] font-semibold">
                       Forgot Password?
                     </Text>
                   </Pressable>
-                </Link> */}
+                </Link>
               </View>
             </View>
           </View>
