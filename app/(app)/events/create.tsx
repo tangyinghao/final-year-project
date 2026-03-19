@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Modal } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { StatusBar } from 'expo-status-bar';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import React, { useState } from 'react';
+import { KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function CreateEventScreen() {
   const router = useRouter();
@@ -13,7 +13,7 @@ export default function CreateEventScreen() {
   const [description, setDescription] = useState('');
   const [capacity, setCapacity] = useState('');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  
+
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
@@ -39,7 +39,7 @@ export default function CreateEventScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar style="dark" />
-      
+
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 py-3 bg-white z-10 border-b border-[#E5E5EA]">
         <TouchableOpacity onPress={() => router.back()} className="px-2 py-2 -ml-2">
@@ -48,7 +48,7 @@ export default function CreateEventScreen() {
         <Text className="text-[18px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
           New Event
         </Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           className="px-2 py-2 -mr-2"
           onPress={handlePost}
         >
@@ -56,12 +56,12 @@ export default function CreateEventScreen() {
         </TouchableOpacity>
       </View>
 
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
       >
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-          
+
           {/* Title Input */}
           <View className="px-5 pt-6 pb-2">
             <TextInput
@@ -101,7 +101,7 @@ export default function CreateEventScreen() {
               ) : (
                 <TouchableOpacity onPress={() => setShowDatePicker(true)}>
                   <View className="flex-row items-center bg-[#F6F6F6] px-3 py-1.5 rounded-lg">
-                    <Text className="text-[15px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{date.toLocaleDateString()}</Text>
+                    <Text className="text-[15px] font-medium text-black" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>{date.toLocaleDateString()}</Text>
                   </View>
                 </TouchableOpacity>
               )}
@@ -123,7 +123,7 @@ export default function CreateEventScreen() {
               ) : (
                 <TouchableOpacity onPress={() => setShowTimePicker(true)}>
                   <View className="flex-row items-center bg-[#F6F6F6] px-3 py-1.5 rounded-lg">
-                    <Text className="text-[15px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
+                    <Text className="text-[15px] font-medium text-black" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>
                       {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </Text>
                   </View>
@@ -208,7 +208,7 @@ export default function CreateEventScreen() {
               </View>
             </View>
           </View>
-          
+
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -225,15 +225,15 @@ export default function CreateEventScreen() {
             <Text className="text-[15px] text-[#666666] text-center mb-6 leading-6" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>
               Your event will be sent to administrators for approval before it becomes publicly visible on the Events board.
             </Text>
-            
+
             <View className="w-full flex-row gap-3">
-              <TouchableOpacity 
+              <TouchableOpacity
                 className="flex-1 py-3.5 rounded-xl border border-[#E5E5EA] items-center"
                 onPress={() => setShowConfirmModal(false)}
               >
                 <Text className="text-[16px] font-bold text-[#666666]" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
+              <TouchableOpacity
                 className="flex-1 py-3.5 rounded-xl bg-[#1B1C62] items-center"
                 onPress={confirmSubmit}
               >
