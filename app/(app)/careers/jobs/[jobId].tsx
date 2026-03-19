@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -60,7 +61,7 @@ export default function JobDetailScreen() {
           </View>
 
           <View className="flex-row items-center bg-[#EBF4FE] rounded-lg p-3 border border-[#D0E6FC]">
-            <Image source={{ uri: 'https://i.pravatar.cc/150?u=alumni' }} className="w-8 h-8 rounded-full bg-gray-200 mr-3" />
+            <Image source={{ uri: 'https://i.pravatar.cc/150?u=marcus' }} className="w-8 h-8 rounded-full bg-gray-200 mr-3" />
             <Text className="flex-1 text-[14px] text-[#1B1C62]" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>
               Posted by <Text style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Marcus Chen</Text> (SCSE '22)
             </Text>
@@ -93,7 +94,10 @@ export default function JobDetailScreen() {
 
       {/* Action Bar */}
       <View className="px-5 py-4 bg-white border-t border-[#E5E5EA]">
-        <TouchableOpacity className="w-full h-14 bg-[#1B1C62] rounded-xl flex-row items-center justify-center">
+        <TouchableOpacity 
+          className="w-full h-14 bg-[#1B1C62] rounded-xl flex-row items-center justify-center"
+          onPress={() => Alert.alert('Application Submitted', 'Your CV and profile have been sent to the employer.')}
+        >
           <Text className="text-white text-[16px] font-bold mr-2" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Apply Now</Text>
           <Ionicons name="paper-plane-outline" size={20} color="white" />
         </TouchableOpacity>

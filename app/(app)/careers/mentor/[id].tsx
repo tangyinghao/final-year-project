@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
@@ -83,7 +84,10 @@ export default function MentorDetailScreen() {
 
       {/* Fixed Bottom Action */}
       <View className="px-5 py-4 pb-8 bg-white border-t border-[#E5E5EA] shadow-xl">
-        <TouchableOpacity className="w-full bg-[#1B1C62] py-4 rounded-xl items-center justify-center">
+        <TouchableOpacity 
+          className="w-full bg-[#1B1C62] py-4 rounded-xl items-center justify-center"
+          onPress={() => Alert.alert('Request Sent', 'The mentor will be notified of your request.')}
+        >
           <Text className="text-white text-[16px] font-bold" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Request Mentorship</Text>
         </TouchableOpacity>
       </View>

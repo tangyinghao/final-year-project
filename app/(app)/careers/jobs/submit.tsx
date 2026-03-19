@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView, Modal } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Modal } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
@@ -10,8 +11,19 @@ export default function SubmitListingScreen() {
   const [description, setDescription] = useState('');
   const [listingType, setListingType] = useState<'Job' | 'Mentorship'>('Job');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  
+  const titleRef = React.useRef<TextInput>(null);
+  const descRef = React.useRef<TextInput>(null);
 
   const handleSubmit = () => {
+    if (!title.trim()) {
+      titleRef.current?.focus();
+      return;
+    }
+    if (!description.trim()) {
+      descRef.current?.focus();
+      return;
+    }
     setShowConfirmModal(true);
   };
 
@@ -34,7 +46,6 @@ export default function SubmitListingScreen() {
         </Text>
         <TouchableOpacity 
           className="w-16 h-10 items-center justify-center -mr-2"
-          disabled={!title.trim() || !description.trim()}
           onPress={handleSubmit}
         >
           <Text className={`text-[16px] font-bold ${title.trim() && description.trim() ? 'text-[#1B1C62]' : 'text-gray-300'}`} style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
@@ -83,6 +94,7 @@ export default function SubmitListingScreen() {
             <View className="bg-white rounded-xl border border-[#E5E5EA] overflow-hidden">
               <View className="px-4 py-3 border-b border-[#E5E5EA]">
                 <TextInput
+                  ref={titleRef}
                   className="text-[17px] text-black font-bold"
                   style={{ fontFamily: 'PlusJakartaSans-Bold' }}
                   placeholder="Job Title (e.g. Software Engineer)"
@@ -93,6 +105,7 @@ export default function SubmitListingScreen() {
               </View>
               <View className="px-4 py-3 h-48">
                 <TextInput
+                  ref={descRef}
                   className="flex-1 text-[16px] text-black"
                   style={{ fontFamily: 'PlusJakartaSans-Regular' }}
                   placeholder="Company name, requirements, responsibilities..."

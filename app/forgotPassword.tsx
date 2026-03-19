@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
@@ -32,7 +33,7 @@ export default function ForgotPasswordScreen() {
 
         {/* Email Input */}
         <View className="flex-row items-center border-b border-[#E5E5EA] pb-3 mb-10">
-          <Ionicons name="mail-outline" size={22} color="#8E8E93" className="mr-3" />
+          <Ionicons name="mail-outline" size={22} color="#8E8E93" style={{ marginRight: 12 }} />
           <TextInput
             className="flex-1 text-[16px] text-black ml-3"
             style={{ fontFamily: 'PlusJakartaSans-Regular' }}
@@ -47,7 +48,15 @@ export default function ForgotPasswordScreen() {
 
         {/* Action Button */}
         <TouchableOpacity 
-          className={`w-full h-14 rounded-full items-center justify-center ${email.trim() ? 'bg-[#1B1C62] shadow-md shadow-blue-900/20' : 'bg-[#E5E5EA]'}`}
+          className="w-full h-14 rounded-full items-center justify-center"
+          style={{ 
+            backgroundColor: email.trim() ? '#1B1C62' : '#E5E5EA',
+            shadowColor: email.trim() ? '#1e3a8a' : 'transparent', 
+            shadowOffset: { width: 0, height: 4 }, 
+            shadowOpacity: 0.2, 
+            shadowRadius: 6, 
+            elevation: email.trim() ? 4 : 0 
+          }}
           disabled={!email.trim()}
           onPress={() => {
             // Placeholder: Firebase trigger would happen here.

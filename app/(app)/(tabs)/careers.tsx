@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
@@ -65,7 +66,7 @@ export default function CareersScreen() {
     : currentData.filter(item => activeTag === 'All' || item.tags.includes(activeTag));
 
   return (
-    <SafeAreaView className="flex-1 bg-white pt-12">
+    <SafeAreaView className="flex-1 bg-white">
       <StatusBar style="dark" />
       
       {/* Header */}
@@ -73,10 +74,10 @@ export default function CareersScreen() {
         <View className="w-8 h-8" />
         <Text className="text-[20px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Careers</Text>
         <TouchableOpacity 
-          className="w-8 h-8 items-center justify-center rounded-full bg-[#1B1C62]"
+          className="w-8 h-8 rounded-full items-center justify-center"
           onPress={() => router.push('/careers/jobs/submit')}
         >
-          <Ionicons name="add" size={20} color="white" />
+          <Ionicons name="add" size={28} color="#1B1C62" />
         </TouchableOpacity>
       </View>
 

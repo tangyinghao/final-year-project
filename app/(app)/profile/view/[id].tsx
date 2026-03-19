@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Image, Linking, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Image, Linking, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -65,7 +66,10 @@ export default function UserProfileViewScreen() {
 
       {/* Fixed Bottom Action */}
       <View className="px-5 py-4 bg-white border-t border-[#E5E5EA]">
-        <TouchableOpacity className="w-full bg-[#1B1C62] py-4 rounded-xl items-center justify-center">
+        <TouchableOpacity 
+          className="w-full bg-[#1B1C62] py-4 rounded-xl items-center justify-center"
+          onPress={() => router.push(`/chat/${id}` as any)}
+        >
           <Text className="text-white text-[16px] font-bold" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Send a Message</Text>
         </TouchableOpacity>
       </View>

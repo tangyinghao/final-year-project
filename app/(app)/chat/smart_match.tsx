@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
@@ -104,7 +105,10 @@ export default function SmartMatchResultsScreen() {
           ))}
         </View>
 
-        <TouchableOpacity className="items-center py-4 mb-4">
+        <TouchableOpacity 
+          className="items-center py-4 mb-4"
+          onPress={() => Alert.alert('Refreshing...', 'Searching for new connections.')}
+        >
           <Text className="text-[15px] font-bold text-[#1B1C62]" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Refresh Matches</Text>
         </TouchableOpacity>
       </ScrollView>

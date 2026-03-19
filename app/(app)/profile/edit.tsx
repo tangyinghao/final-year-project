@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Image, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
@@ -25,7 +26,7 @@ export default function EditProfileScreen() {
         <Text className="text-[18px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
           Edit Profile
         </Text>
-        <TouchableOpacity className="px-2 py-2 -mr-2">
+        <TouchableOpacity className="px-2 py-2 -mr-2" onPress={() => { Alert.alert('Profile Saved', 'Your profile details have been updated.'); router.back(); }}>
           <Text className="text-[16px] font-bold text-[#1B1C62]" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Save</Text>
         </TouchableOpacity>
       </View>

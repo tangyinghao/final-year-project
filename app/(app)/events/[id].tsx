@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView, SafeAreaView, Dimensions, Modal } from 'react-native';
+import { View, Text, Image, TouchableOpacity, ScrollView, Dimensions, Modal } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
@@ -8,8 +9,12 @@ const { width } = Dimensions.get('window');
 
 export default function EventDetailScreen() {
   const router = useRouter();
-  const { id } = useLocalSearchParams();
+  const { id, title, time, attendees } = useLocalSearchParams();
   const [showJoinDialog, setShowJoinDialog] = useState(false);
+  const [hasJoined, setHasJoined] = useState(false);
+  
+  const attendeeBaseCount = parseInt(attendees as string) || 12;
+  const currentCount = hasJoined ? attendeeBaseCount + 1 : attendeeBaseCount;
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -36,13 +41,13 @@ export default function EventDetailScreen() {
         {/* Info Section */}
         <View className="px-5 pt-6 pb-4">
           <Text className="text-[26px] font-bold text-black mb-4 leading-8" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
-            Badminton Session
+            {title || 'Badminton Session'}
           </Text>
 
           <View className="flex-row items-center mb-3">
             <View className="w-8 items-center"><Ionicons name="calendar" size={20} color="#8E8E93" /></View>
             <Text className="text-[15px] text-[#333333] ml-2" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>
-              Saturday, 12 Oct 2025 • 2:00 PM - 4:00 PM
+              Saturday, 12 Oct 2025 • {time || '2:00 PM - 4:00 PM'}
             </Text>
           </View>
 
@@ -69,7 +74,7 @@ export default function EventDetailScreen() {
 
           {/* Attendees */}
           <View className="flex-row justify-between items-end mb-4">
-            <Text className="text-[17px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Attendees (12/20)</Text>
+            <Text className="text-[17px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Attendees ({currentCount}/20)</Text>
             {/* @ts-ignore */}
             <TouchableOpacity onPress={() => router.push({ pathname: '/events/attendees', params: { id } })}>
               <Text className="text-[14px] text-[#1B1C62] font-bold" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>View All</Text>
@@ -78,11 +83,14 @@ export default function EventDetailScreen() {
           
           <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-8">
             {[...Array(8)].map((_, i) => (
-              <Image 
+              <View 
                 key={i} 
-                source={{ uri: `https://i.pravatar.cc/150?u=user${i}` }} 
-                className="w-12 h-12 rounded-full mr-3 border border-[#E5E5EA]" 
-              />
+                className="w-12 h-12 rounded-full mr-3 border border-[#E5E5EA] bg-[#1B1C62] items-center justify-center"
+              >
+                <Text className="text-white text-[18px] font-bold" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
+                  {['A', 'J', 'S', 'M', 'T', 'K', 'L', 'P'][i]}
+                </Text>
+              </View>
             ))}
           </ScrollView>
         </View>
@@ -91,10 +99,13 @@ export default function EventDetailScreen() {
       {/* Fixed Bottom Bar */}
       <View className="px-5 py-4 pb-8 bg-white border-t border-[#E5E5EA] shadow-xl">
         <TouchableOpacity 
-          className="w-full bg-[#1B1C62] py-4 rounded-xl items-center justify-center"
-          onPress={() => setShowJoinDialog(true)}
+          className={`w-full py-4 rounded-xl items-center justify-center ${hasJoined ? 'bg-gray-300' : 'bg-[#1B1C62]'}`}
+          onPress={() => !hasJoined && setShowJoinDialog(true)}
+          disabled={hasJoined}
         >
-          <Text className="text-white text-[16px] font-bold" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Join Event</Text>
+          <Text className={`${hasJoined ? 'text-gray-500' : 'text-white'} text-[16px] font-bold`} style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
+            {hasJoined ? 'Joined Event' : 'Join Event'}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -120,6 +131,7 @@ export default function EventDetailScreen() {
                 className="flex-1 py-3.5 rounded-xl bg-[#1B1C62] items-center justify-center"
                 onPress={() => {
                   setShowJoinDialog(false);
+                  setHasJoined(true);
                   alert("Successfully joined event!");
                 }}
               >

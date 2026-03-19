@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
@@ -48,6 +49,11 @@ export default function NotificationsScreen() {
     <TouchableOpacity 
       key={item.id} 
       className={`flex-row px-5 py-4 items-center border-b border-[#E5E5EA] ${item.unread ? 'bg-blue-50/20' : 'bg-white'}`}
+      onPress={() => {
+        if (item.type === 'event') router.push('/events/1');
+        else if (item.type === 'message') router.push(`/chat/1?name=${item.title}&avatar=${item.avatar}`);
+        else router.push('/careers');
+      }}
     >
       {item.avatar ? (
         <Image source={{ uri: item.avatar }} className="w-12 h-12 rounded-full bg-gray-200" />
@@ -85,7 +91,10 @@ export default function NotificationsScreen() {
         <Text className="text-[18px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
           Notifications
         </Text>
-        <TouchableOpacity className="w-10 h-10 items-center justify-center">
+        <TouchableOpacity 
+          className="w-10 h-10 items-center justify-center"
+          onPress={() => Alert.alert('Settings', 'Notification preferences will go here.')}
+        >
           <Ionicons name="settings-outline" size={22} color="#8E8E93" />
         </TouchableOpacity>
       </View>

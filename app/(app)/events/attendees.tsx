@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -12,7 +13,7 @@ export default function AttendeesScreen() {
     id: i,
     name: `Attendee ${i + 1}`,
     role: i % 2 === 0 ? 'Software Engineer' : 'Student',
-    avatar: `https://i.pravatar.cc/150?u=user${i}`
+    avatar: `https://i.pravatar.cc/150?u=attendee${i + 1}`
   }));
 
   return (

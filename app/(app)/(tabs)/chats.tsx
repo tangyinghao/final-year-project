@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, TextInput, FlatList, Image, TouchableOpacity, SafeAreaView, Platform } from 'react-native';
+import { View, Text, TextInput, FlatList, Image, TouchableOpacity, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
@@ -14,12 +15,13 @@ const MOCK_CHATS = [
     unread: 2,
   },
   {
-    id: '2',
-    name: 'James Sin',
-    message: 'Can you send me the lecture notes?',
-    time: '10:42 AM',
-    avatar: 'https://i.pravatar.cc/150?u=james',
-    unread: 0,
+    id: 'g1',
+    name: 'Academic/SCSE Study Group',
+    message: 'Sarah: Great, see everyone Thursday!',
+    time: '11:15 AM',
+    avatar: 'https://i.pravatar.cc/150?u=marcus',
+    unread: 1,
+    isGroup: true,
   },
   {
     id: '3',
@@ -41,12 +43,20 @@ const MOCK_CHATS = [
 
 export default function ChatsScreen() {
   const router = useRouter();
+  const [searchQuery, setSearchQuery] = React.useState('');
+  
+  const filteredChats = MOCK_CHATS.filter(chat => 
+    chat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    chat.message.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <SafeAreaView className="flex-1 bg-white pt-12">
+    <SafeAreaView className="flex-1 bg-white">
       <StatusBar style="dark" />
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 pb-2">
-        <View className="w-8" /> {/* Placeholder for balance */}
+        {/* Placeholder for balance */}
+        <View className="w-8" />
         <Text className="text-[20px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Chats</Text>
         <TouchableOpacity 
           className="w-8 h-8 rounded-full items-center justify-center"
@@ -65,19 +75,21 @@ export default function ChatsScreen() {
             placeholderTextColor="#8E8E93"
             className="flex-1 ml-2 text-black text-[16px]"
             style={{ fontFamily: 'PlusJakartaSans-Regular', height: Platform.OS === 'ios' ? 24 : 40 }}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
           />
         </View>
       </View>
 
       {/* Chat List */}
       <FlatList
-        data={MOCK_CHATS}
+        data={filteredChats}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <TouchableOpacity 
             className="flex-row items-center px-4 py-3 active:bg-gray-50"
             // @ts-ignore
-            onPress={() => router.push(`/chat/${item.id}?name=${encodeURIComponent(item.name)}`)}
+            onPress={() => router.push(`/chat/${item.id}?name=${encodeURIComponent(item.name)}&avatar=${encodeURIComponent(item.avatar)}${item.isGroup ? '&isGroup=true' : ''}`)}
           >
             <Image
               source={{ uri: item.avatar }}

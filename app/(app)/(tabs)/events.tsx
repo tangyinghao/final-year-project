@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, FlatList, ScrollView, Image, TouchableOpacity, SafeAreaView, Dimensions } from 'react-native';
+import { View, Text, FlatList, ScrollView, Image, TouchableOpacity, Dimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
@@ -34,7 +35,7 @@ export default function EventsScreen() {
   const router = useRouter();
   
   return (
-    <SafeAreaView className="flex-1 bg-white pt-12">
+    <SafeAreaView className="flex-1 bg-white">
       <StatusBar style="dark" />
       
       {/* Header */}
@@ -43,7 +44,6 @@ export default function EventsScreen() {
         <Text className="text-[20px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Events</Text>
         <TouchableOpacity 
           className="w-8 h-8 rounded-full items-center justify-center"
-          // @ts-ignore
           onPress={() => router.push('/events/create')}
         >
           <Ionicons name="add" size={28} color="#1B1C62" />
@@ -75,8 +75,6 @@ export default function EventsScreen() {
                   <Text className="text-[#1B1C62]/80 text-[13px] mt-1" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>Join us this December</Text>
                 </View>
               </View>
-              {/* Dummy 2nd card */}
-              <View style={{ width: width - 32 }} className="h-[160px] bg-red-50 rounded-2xl mr-4" />
             </ScrollView>
 
             {/* Map Card */}
@@ -86,7 +84,7 @@ export default function EventsScreen() {
               onPress={() => router.push('/profile/footprint')}
             >
               <Ionicons name="map-outline" size={80} color="rgba(255,255,255,0.1)" style={{ position: 'absolute', right: -10, top: -10 }} />
-              <Ionicons name="location" size={24} color="#FFFFFF" className="mb-2" />
+              <Ionicons name="location" size={24} color="#FFFFFF" style={{ marginBottom: 8 }} />
               <Text className="text-white text-[18px] font-bold text-center" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>My Footprint Map</Text>
               <Text className="text-white/80 text-[13px] text-center mt-1" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>Campus Explorer • 4/12 Zones</Text>
             </TouchableOpacity>
@@ -101,7 +99,7 @@ export default function EventsScreen() {
           <TouchableOpacity 
             className="bg-white mx-4 mb-4 rounded-xl p-4 shadow-sm border border-[#E5E5EA]"
             // @ts-ignore
-            onPress={() => router.push(`/events/${item.id}`)}
+            onPress={() => router.push(`/events/${item.id}?title=${encodeURIComponent(item.title)}&time=${encodeURIComponent(item.time)}&attendees=${item.attendeeCount}`)}
           >
             <View className="flex-row justify-between items-start mb-2">
               <Text className="text-[16px] font-bold text-black flex-1 mr-2" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{item.title}</Text>
@@ -113,10 +111,14 @@ export default function EventsScreen() {
               <Text className="text-[13px] text-[#8E8E93]" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>{item.time}</Text>
               <View className="flex-row">
                 {[...Array(3)].map((_, i) => (
-                  <View key={i} className={`w-6 h-6 rounded-full bg-gray-300 border-2 border-white ${i > 0 ? '-ml-2' : ''}`} />
+                  <View key={i} className={`w-6 h-6 rounded-full bg-[#1B1C62] border-2 border-white items-center justify-center ${i > 0 ? '-ml-2' : ''}`}>
+                    <Text className="text-white text-[10px] font-bold">
+                      {['A', 'J', 'S'][i]}
+                    </Text>
+                  </View>
                 ))}
-                <View className="w-6 h-6 rounded-full bg-gray-100 border-2 border-white -ml-2 items-center justify-center">
-                  <Text className="text-[10px] text-[#8E8E93] font-bold">+{item.attendeeCount}</Text>
+                <View className="min-w-[24px] h-6 rounded-full bg-gray-100 border-2 border-white -ml-2 items-center justify-center px-1">
+                  <Text className="text-[10px] text-[#8E8E93] font-bold text-center">+{item.attendeeCount}</Text>
                 </View>
               </View>
             </View>

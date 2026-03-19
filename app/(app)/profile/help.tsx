@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, TextInput, Linking, Modal } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Linking, Modal } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
@@ -13,8 +14,14 @@ const FAQ_ITEMS = [
 
 export default function HelpSupportScreen() {
   const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState('');
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
   const [showGuidelines, setShowGuidelines] = useState(false);
+
+  const filteredFaqs = FAQ_ITEMS.filter(item =>
+    item.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.answer.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleReportIssue = () => {
     Linking.openURL('mailto:support@mscircle.com?subject=Report%20an%20Issue');
@@ -27,7 +34,7 @@ export default function HelpSupportScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar style="dark" />
-      
+
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 py-3 bg-white z-10 border-b border-[#E5E5EA]">
         <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 items-center justify-center -ml-2">
@@ -49,6 +56,8 @@ export default function HelpSupportScreen() {
               style={{ fontFamily: 'PlusJakartaSans-Regular', height: 24 }}
               placeholder="Search for help..."
               placeholderTextColor="#8E8E93"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
             />
           </View>
         </View>
@@ -57,9 +66,9 @@ export default function HelpSupportScreen() {
         <View className="px-5 mb-8">
           <Text className="text-[14px] text-[#8E8E93] uppercase mb-2 font-medium" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>FAQs</Text>
           <View className="bg-white border-t border-[#E5E5EA]">
-            {FAQ_ITEMS.map((item, index) => (
+            {filteredFaqs.map((item, index) => (
               <View key={index} className="border-b border-[#E5E5EA]">
-                <TouchableOpacity 
+                <TouchableOpacity
                   className="flex-row items-center justify-between py-4"
                   onPress={() => setExpandedFaq(expandedFaq === index ? null : index)}
                 >
@@ -79,19 +88,12 @@ export default function HelpSupportScreen() {
         <View className="px-5 mb-12">
           <Text className="text-[14px] text-[#8E8E93] uppercase mb-2 font-medium" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>Other Resources</Text>
           <View className="bg-white border border-[#E5E5EA] rounded-xl overflow-hidden">
-            <TouchableOpacity 
-              className="flex-row items-center justify-between p-4 border-b border-[#E5E5EA]"
+            <TouchableOpacity
+              className="flex-row items-center justify-between p-4"
               onPress={() => setShowGuidelines(true)}
             >
               <Text className="text-[16px] text-black font-medium" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>Community Guidelines</Text>
               <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
-            </TouchableOpacity>
-            <TouchableOpacity 
-              className="flex-row items-center justify-between p-4"
-              onPress={handleReportIssue}
-            >
-              <Text className="text-[16px] text-[#D71440] font-medium" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>Report an Issue</Text>
-              <Ionicons name="alert-circle-outline" size={18} color="#D71440" />
             </TouchableOpacity>
           </View>
         </View>
@@ -100,7 +102,7 @@ export default function HelpSupportScreen() {
         <View className="px-5 pb-20 items-center">
             <Text className="text-[17px] font-bold text-black mb-1" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Still need help?</Text>
             <Text className="text-[14px] text-[#8E8E93] text-center mb-5" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>We're here to assist you anytime.</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               className="w-full bg-[#1B1C62] py-4 rounded-xl items-center justify-center flex-row"
               onPress={handleContactUs}
             >

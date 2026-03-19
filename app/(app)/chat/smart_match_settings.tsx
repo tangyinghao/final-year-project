@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
@@ -19,6 +20,7 @@ export default function SmartMatchSettingsScreen() {
   const [matchMode, setMatchMode] = useState<'individual' | 'group'>('individual');
   const [selectedGroupSize, setSelectedGroupSize] = useState('5 Users');
   const [selectedInterests, setSelectedInterests] = useState<string[]>(['1', '3']);
+  const insets = useSafeAreaInsets();
 
   const toggleInterest = (id: string) => {
     if (selectedInterests.includes(id)) {
@@ -29,11 +31,15 @@ export default function SmartMatchSettingsScreen() {
   };
 
   const handleStartMatching = () => {
-    router.push('/chat/smart_match');
+    if (matchMode === 'group') {
+      router.push('/chat/smart_match_group' as any);
+    } else {
+      router.push('/chat/smart_match');
+    }
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <View className="flex-1 bg-white" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
       <StatusBar style="dark" />
       
       {/* Header */}
@@ -51,16 +57,18 @@ export default function SmartMatchSettingsScreen() {
         {/* Match Type Toggle */}
         <View className="px-5 pt-5 pb-6">
           <View className="flex-row bg-[#F6F6F6] rounded-xl p-1">
-            <TouchableOpacity 
-              className={`flex-1 py-2 items-center justify-center rounded-lg ${matchMode === 'individual' ? 'bg-white shadow-sm' : ''}`}
+            <TouchableOpacity
+              className={`flex-1 py-2 items-center justify-center rounded-lg ${matchMode === 'individual' ? 'bg-white' : ''}`}
+              style={matchMode === 'individual' ? { shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: { width: 0, height: 1 }, shadowRadius: 2, elevation: 1 } : undefined}
               onPress={() => setMatchMode('individual')}
             >
               <Text className={`text-[15px] font-bold ${matchMode === 'individual' ? 'text-black' : 'text-[#8E8E93]'}`} style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
                 Individual Match
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity 
-              className={`flex-1 py-2 items-center justify-center rounded-lg ${matchMode === 'group' ? 'bg-white shadow-sm' : ''}`}
+            <TouchableOpacity
+              className={`flex-1 py-2 items-center justify-center rounded-lg ${matchMode === 'group' ? 'bg-white' : ''}`}
+              style={matchMode === 'group' ? { shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: { width: 0, height: 1 }, shadowRadius: 2, elevation: 1 } : undefined}
               onPress={() => setMatchMode('group')}
             >
               <Text className={`text-[15px] font-bold ${matchMode === 'group' ? 'text-black' : 'text-[#8E8E93]'}`} style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
@@ -129,6 +137,6 @@ export default function SmartMatchSettingsScreen() {
           <Ionicons name="flash" size={20} color="white" />
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }

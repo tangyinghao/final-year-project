@@ -1,13 +1,15 @@
 import { Link, useRouter } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
-import React from 'react'
+import React, { useState } from 'react'
 import { Pressable, Text, TextInput, View } from 'react-native'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import NTULogo from '../assets/images/NTULogo.svg'
 
 export default function logIn() {
-  const router = useRouter()
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   return (
     <View className="flex-1 bg-white">
       <StatusBar style="dark" />
@@ -42,6 +44,8 @@ export default function logIn() {
                       placeholderTextColor="#94a3b8" //TODO: add NTU fixed colours and fonts
                       keyboardType="email-address"
                       autoCapitalize="none"
+                      value={email}
+                      onChangeText={setEmail}
                     />
                   </View>
                 </View>
@@ -67,6 +71,8 @@ export default function logIn() {
                       placeholder={'\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022'}
                       placeholderTextColor="#94a3b8"
                       secureTextEntry
+                      value={password}
+                      onChangeText={setPassword}
                     />
                   </View>
                 </View>
@@ -75,7 +81,7 @@ export default function logIn() {
               <Pressable 
                 style={{height: hp(6)}} 
                 className="h-12 items-center justify-center rounded-xl bg-[#121C5D]"
-                onPress={() => router.replace('/chats')}
+                onPress={() => router.replace('/(app)/(tabs)/chats' as any)}
               >
                 <Text style={{fontSize: hp(2.1)}} className="text-white font-semibold">
                   Log In

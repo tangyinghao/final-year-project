@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, TextInput, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -102,7 +103,7 @@ export default function ReportUserScreen() {
             )}
 
             <View className="flex-row items-start bg-[#F6F6F6] p-4 rounded-xl mb-10">
-              <Ionicons name="shield-checkmark" size={20} color="#8E8E93" className="mt-0.5" />
+              <Ionicons name="shield-checkmark" size={20} color="#8E8E93" style={{ marginTop: 2 }} />
               <Text className="flex-1 text-[13px] text-[#666666] ml-3 leading-5" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>
                 If someone is in immediate danger, call local emergency services. Do not wait for us to review this report.
               </Text>

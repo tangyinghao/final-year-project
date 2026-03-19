@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, TextInput, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Image } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
@@ -29,7 +30,7 @@ export default function CreateChatScreen() {
     if (selectedUsers.length > 0) {
       // In production, instantiate Firestore chat thread here
       // For testing, just go to the chat detail screen
-      router.push('/chat/detail');
+      router.push(`/chat/${selectedUsers[0].id}?name=${encodeURIComponent(selectedUsers[0].name)}` as any);
     }
   };
 
