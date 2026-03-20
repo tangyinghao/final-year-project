@@ -105,6 +105,8 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
         interests: [],
         bio: '',
         status: 'active',
+        expoPushToken: null,
+        notificationsEnabled: true,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       };

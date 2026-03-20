@@ -15,6 +15,8 @@ export interface UserProfile {
   interests: string[];
   bio: string;
   status: UserStatus;
+  expoPushToken: string | null;
+  notificationsEnabled: boolean;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -43,7 +45,7 @@ export interface Chat {
   updatedAt: Timestamp;
 }
 
-export type MessageType = 'text' | 'image' | 'system';
+export type MessageType = 'text' | 'image' | 'file' | 'system';
 
 export interface Message {
   id: string;
@@ -52,6 +54,8 @@ export interface Message {
   text: string;
   type: MessageType;
   imageUrl: string | null;
+  fileUrl: string | null;
+  fileName: string | null;
   createdAt: Timestamp;
   readBy: string[];
 }
@@ -173,9 +177,12 @@ export interface SavedItem {
 }
 
 // ── Footprint ─────────────────────────────────────────────────────────
+export type FootprintMapType = 'ntu' | 'singapore';
+
 export interface FootprintCheckin {
   zoneId: string;
   zoneName: string;
+  mapType: FootprintMapType;
   checkedInAt: Timestamp;
 }
 

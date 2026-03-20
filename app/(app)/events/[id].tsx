@@ -5,7 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useAuth } from '@/context/authContext';
-import { getEvent, joinEvent } from '@/services/eventService';
+import { getEvent, joinEvent, leaveEvent } from '@/services/eventService';
 import { getUsersByIds } from '@/services/userService';
 import { AppEvent, UserProfile } from '@/types';
 import { DEFAULT_AVATAR } from '@/constants/images';
@@ -21,8 +21,10 @@ export default function EventDetailScreen() {
   const [attendeeProfiles, setAttendeeProfiles] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [showJoinDialog, setShowJoinDialog] = useState(false);
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
   const [hasJoined, setHasJoined] = useState(false);
   const [joining, setJoining] = useState(false);
+  const [leaving, setLeaving] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -49,6 +51,21 @@ export default function EventDetailScreen() {
     setEvent({ ...event, attendeeCount: event.attendeeCount + 1, attendees: [...event.attendees, user.uid] });
     setJoining(false);
     setShowJoinDialog(false);
+  };
+
+  const handleLeave = async () => {
+    if (!user || !event) return;
+    setLeaving(true);
+    await leaveEvent(eventId, user.uid);
+    setHasJoined(false);
+    setEvent({
+      ...event,
+      attendeeCount: Math.max(0, event.attendeeCount - 1),
+      attendees: event.attendees.filter((uid) => uid !== user.uid),
+    });
+    setAttendeeProfiles(attendeeProfiles.filter((p) => p.uid !== user.uid));
+    setLeaving(false);
+    setShowLeaveDialog(false);
   };
 
   if (loading) {
@@ -147,15 +164,25 @@ export default function EventDetailScreen() {
 
       {/* Fixed Bottom Bar */}
       <View className="px-5 py-4 pb-8 bg-white border-t border-[#E5E5EA] shadow-xl">
-        <TouchableOpacity
-          className={`w-full py-4 rounded-xl items-center justify-center ${hasJoined ? 'bg-gray-300' : 'bg-[#1B1C62]'}`}
-          onPress={() => !hasJoined && setShowJoinDialog(true)}
-          disabled={hasJoined}
-        >
-          <Text className={`${hasJoined ? 'text-gray-500' : 'text-white'} text-[16px] font-bold`} style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
-            {hasJoined ? 'Joined Event' : 'Join Event'}
-          </Text>
-        </TouchableOpacity>
+        {hasJoined ? (
+          <TouchableOpacity
+            className="w-full py-4 rounded-xl items-center justify-center bg-[#D71440]"
+            onPress={() => setShowLeaveDialog(true)}
+          >
+            <Text className="text-white text-[16px] font-bold" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
+              Leave Event
+            </Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            className="w-full py-4 rounded-xl items-center justify-center bg-[#1B1C62]"
+            onPress={() => setShowJoinDialog(true)}
+          >
+            <Text className="text-white text-[16px] font-bold" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
+              Join Event
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Join Event Dialog */}
@@ -176,6 +203,31 @@ export default function EventDetailScreen() {
               <TouchableOpacity className="flex-1 py-3.5 rounded-xl bg-[#1B1C62] items-center justify-center" onPress={handleJoin} disabled={joining}>
                 {joining ? <ActivityIndicator color="white" /> : (
                   <Text className="text-[16px] font-bold text-white" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Confirm</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Leave Event Dialog */}
+      <Modal visible={showLeaveDialog} transparent animationType="fade">
+        <View className="flex-1 bg-black/50 justify-center items-center px-6">
+          <View className="bg-white w-full rounded-2xl p-6 items-center">
+            <View className="w-16 h-16 bg-red-50 rounded-full items-center justify-center mb-4">
+              <Ionicons name="exit-outline" size={32} color="#D71440" />
+            </View>
+            <Text className="text-[20px] font-bold text-black mb-2 text-center" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Leave Event?</Text>
+            <Text className="text-[15px] text-[#8E8E93] text-center mb-6 leading-6" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>
+              Are you sure you want to leave {event?.title}? You can rejoin later.
+            </Text>
+            <View className="flex-row w-full gap-3">
+              <TouchableOpacity className="flex-1 py-3.5 rounded-xl border border-[#E5E5EA] items-center justify-center" onPress={() => setShowLeaveDialog(false)}>
+                <Text className="text-[16px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity className="flex-1 py-3.5 rounded-xl bg-[#D71440] items-center justify-center" onPress={handleLeave} disabled={leaving}>
+                {leaving ? <ActivityIndicator color="white" /> : (
+                  <Text className="text-[16px] font-bold text-white" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Leave</Text>
                 )}
               </TouchableOpacity>
             </View>

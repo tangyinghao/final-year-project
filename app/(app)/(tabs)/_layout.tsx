@@ -1,8 +1,10 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { View } from 'react-native';
+import { View, Text } from 'react-native';
+import { useUnread } from '@/context/unreadContext';
 
 export default function TabLayout() {
+  const { totalUnread } = useUnread();
   return (
     <Tabs
       screenOptions={{
@@ -29,7 +31,16 @@ export default function TabLayout() {
         options={{
           title: 'Chats',
           tabBarIcon: ({ color }) => (
-            <Ionicons name="chatbubble-outline" size={24} color={color} />
+            <View>
+              <Ionicons name="chatbubble-outline" size={24} color={color} />
+              {totalUnread > 0 && (
+                <View style={{ position: 'absolute', top: -4, right: -10, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: '#D71440', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 }}>
+                  <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>
+                    {totalUnread > 99 ? '99+' : totalUnread}
+                  </Text>
+                </View>
+              )}
+            </View>
           ),
         }}
       />

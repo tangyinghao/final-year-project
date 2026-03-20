@@ -33,7 +33,7 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
 
 export async function updateUserProfile(
   uid: string,
-  data: Partial<Pick<UserProfile, 'displayName' | 'bio' | 'programme' | 'graduationYear' | 'interests' | 'profilePhoto'>>
+  data: Partial<Pick<UserProfile, 'displayName' | 'bio' | 'programme' | 'graduationYear' | 'interests' | 'profilePhoto' | 'notificationsEnabled'>>
 ): Promise<void> {
   await updateDoc(doc(db, 'users', uid), {
     ...data,

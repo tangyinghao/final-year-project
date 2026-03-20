@@ -13,9 +13,22 @@ import {
   limit,
   Timestamp,
   arrayUnion,
+  increment,
 } from 'firebase/firestore';
-import { db } from '@/config/firebaseConfig';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '@/config/firebaseConfig';
 import { Chat, Message } from '@/types';
+
+async function uriToBlob(uri: string): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.onload = () => resolve(xhr.response as Blob);
+    xhr.onerror = () => reject(new Error('Failed to convert URI to blob'));
+    xhr.responseType = 'blob';
+    xhr.open('GET', uri, true);
+    xhr.send(null);
+  });
+}
 
 // ── Fetch chats where user is a participant ──────────────────────────
 export function subscribeToChats(
@@ -68,25 +81,25 @@ export async function sendMessage(
     readBy: [senderId],
   });
 
-  // Update chat's lastMessage and mark unread for other participants
+  // Update chat's lastMessage and atomically increment unread count for other participants
   const chatSnap = await getDoc(doc(db, 'chats', chatId));
   const chatData = chatSnap.data();
   const otherParticipants = (chatData?.participants || []).filter((p: string) => p !== senderId);
-  const unreadBy = otherParticipants.reduce((acc: Record<string, boolean>, uid: string) => {
-    acc[uid] = true;
-    return acc;
-  }, {} as Record<string, boolean>);
 
-  await updateDoc(doc(db, 'chats', chatId), {
+  const updates: Record<string, any> = {
     lastMessage: {
       text,
       senderId,
       senderName,
       timestamp: serverTimestamp(),
     },
-    unreadBy,
     updatedAt: serverTimestamp(),
+  };
+  otherParticipants.forEach((uid: string) => {
+    updates[`unreadCount.${uid}`] = increment(1);
   });
+
+  await updateDoc(doc(db, 'chats', chatId), updates);
 }
 
 // ── Create a direct chat ─────────────────────────────────────────────
@@ -117,6 +130,7 @@ export async function createDirectChat(
     matchType: 'manual',
     cohortYear: null,
     lastMessage: null,
+    unreadCount: {},
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
@@ -139,6 +153,7 @@ export async function createGroupChat(
     matchType,
     cohortYear: null,
     lastMessage: null,
+    unreadCount: {},
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
@@ -176,6 +191,99 @@ export async function markChatAsRead(
   userId: string
 ): Promise<void> {
   await updateDoc(doc(db, 'chats', chatId), {
-    [`unreadBy.${userId}`]: false,
+    [`unreadCount.${userId}`]: 0,
   });
+}
+
+// ── Upload chat image and send as message ───────────────────────────
+export async function sendImageMessage(
+  chatId: string,
+  senderId: string,
+  senderName: string,
+  imageUri: string
+): Promise<void> {
+  // Upload image to Firebase Storage
+  const fileName = `${Date.now()}_${senderId}.jpg`;
+  const storageRef = ref(storage, `chat-images/${chatId}/${fileName}`);
+  const blob = await uriToBlob(imageUri);
+  await uploadBytes(storageRef, blob);
+  const imageUrl = await getDownloadURL(storageRef);
+
+  // Create image message
+  const msgRef = collection(db, 'chats', chatId, 'messages');
+  await addDoc(msgRef, {
+    senderId,
+    senderName,
+    text: '',
+    type: 'image',
+    imageUrl,
+    createdAt: serverTimestamp(),
+    readBy: [senderId],
+  });
+
+  // Update chat's lastMessage and atomically increment unread count
+  const chatSnap = await getDoc(doc(db, 'chats', chatId));
+  const chatData = chatSnap.data();
+  const otherParticipants = (chatData?.participants || []).filter((p: string) => p !== senderId);
+
+  const updates: Record<string, any> = {
+    lastMessage: {
+      text: '📷 Photo',
+      senderId,
+      senderName,
+      timestamp: serverTimestamp(),
+    },
+    updatedAt: serverTimestamp(),
+  };
+  otherParticipants.forEach((uid: string) => {
+    updates[`unreadCount.${uid}`] = increment(1);
+  });
+
+  await updateDoc(doc(db, 'chats', chatId), updates);
+}
+
+// ── Upload file and send as message ─────────────────────────────────
+export async function sendFileMessage(
+  chatId: string,
+  senderId: string,
+  senderName: string,
+  fileUri: string,
+  fileName: string
+): Promise<void> {
+  const storageRef = ref(storage, `chat-files/${chatId}/${Date.now()}_${fileName}`);
+  const blob = await uriToBlob(fileUri);
+  await uploadBytes(storageRef, blob);
+  const fileUrl = await getDownloadURL(storageRef);
+
+  const msgRef = collection(db, 'chats', chatId, 'messages');
+  await addDoc(msgRef, {
+    senderId,
+    senderName,
+    text: '',
+    type: 'file',
+    imageUrl: null,
+    fileUrl,
+    fileName,
+    createdAt: serverTimestamp(),
+    readBy: [senderId],
+  });
+
+  const chatSnap = await getDoc(doc(db, 'chats', chatId));
+  const chatData = chatSnap.data();
+  const otherParticipants = (chatData?.participants || []).filter((p: string) => p !== senderId);
+
+  const updates: Record<string, any> = {
+    lastMessage: {
+      text: `📎 ${fileName}`,
+      senderId,
+      senderName,
+      timestamp: serverTimestamp(),
+    },
+    updatedAt: serverTimestamp(),
+  };
+  otherParticipants.forEach((uid: string) => {
+    updates[`unreadCount.${uid}`] = increment(1);
+  });
+
+  await updateDoc(doc(db, 'chats', chatId), updates);
 }

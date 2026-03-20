@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Image, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Image, Alert, ActivityIndicator, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as DocumentPicker from 'expo-document-picker';
 import { useSavedItems } from '@/hooks/useSavedItems';
 import { useAuth } from '@/context/authContext';
-import { getJob, applyToJob } from '@/services/careerService';
+import { getJob, applyToJob, uploadCV } from '@/services/careerService';
 import { getUsersByIds } from '@/services/userService';
 import { Job, UserProfile } from '@/types';
 import { DEFAULT_AVATAR } from '@/constants/images';
@@ -23,6 +24,9 @@ export default function JobDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
+  const [cvFile, setCvFile] = useState<{ uri: string; name: string } | null>(null);
+  const [uploadingCv, setUploadingCv] = useState(false);
+  const [showApplyDialog, setShowApplyDialog] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -36,17 +40,35 @@ export default function JobDetailScreen() {
     })();
   }, [jobId]);
 
+  const handlePickCV = async () => {
+    const result = await DocumentPicker.getDocumentAsync({
+      type: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+      copyToCacheDirectory: true,
+    });
+    if (!result.canceled && result.assets?.[0]) {
+      setCvFile({ uri: result.assets[0].uri, name: result.assets[0].name });
+    }
+  };
+
   const handleApply = async () => {
     if (!user || !job) return;
     setApplying(true);
     try {
-      await applyToJob(job.id, user.uid, user.displayName);
+      let cvUrl: string | null = null;
+      if (cvFile) {
+        setUploadingCv(true);
+        cvUrl = await uploadCV(user.uid, cvFile.uri, cvFile.name);
+        setUploadingCv(false);
+      }
+      await applyToJob(job.id, user.uid, user.displayName, cvUrl);
       setHasApplied(true);
+      setShowApplyDialog(false);
       Alert.alert('Application Submitted', 'Your profile has been sent to the employer.');
     } catch (e) {
       Alert.alert('Error', 'Failed to submit application.');
     } finally {
       setApplying(false);
+      setUploadingCv(false);
     }
   };
 
@@ -129,25 +151,106 @@ export default function JobDetailScreen() {
           </Text>
         </View>
 
+        {/* CV Upload Section */}
+        {!hasApplied && (
+          <View className="bg-white mt-2 px-5 py-5 border-y border-[#E5E5EA]">
+            <Text className="text-[18px] font-bold text-black mb-3" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Attach CV (Optional)</Text>
+            {cvFile ? (
+              <View className="flex-row items-center bg-[#F6F6F6] rounded-xl py-3 px-4 border border-[#D0E6FC]">
+                <Ionicons name="document-outline" size={20} color="#1B1C62" />
+                <Text className="text-[14px] text-[#4A4A4A] ml-3 flex-1" numberOfLines={1} style={{ fontFamily: 'PlusJakartaSans-Medium' }}>
+                  {cvFile.name}
+                </Text>
+                <Ionicons name="checkmark-circle" size={20} color="#34C759" style={{ marginRight: 8 }} />
+                <TouchableOpacity onPress={() => setCvFile(null)}>
+                  <Ionicons name="close-circle" size={20} color="#8E8E93" />
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity
+                className="flex-row items-center justify-center py-4 rounded-xl border border-dashed border-[#1B1C62]"
+                onPress={handlePickCV}
+              >
+                <Ionicons name="cloud-upload-outline" size={22} color="#1B1C62" />
+                <Text className="text-[15px] text-[#1B1C62] ml-2" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Upload PDF or Document</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+
       </ScrollView>
 
       {/* Action Bar */}
-      <View className="px-5 py-4 bg-white border-t border-[#E5E5EA]">
+      <View className="px-5 py-4 pb-8 bg-white border-t border-[#E5E5EA] shadow-xl">
         <TouchableOpacity
           className={`w-full h-14 rounded-xl flex-row items-center justify-center ${hasApplied ? 'bg-gray-300' : 'bg-[#1B1C62]'}`}
-          onPress={handleApply}
-          disabled={hasApplied || applying}
+          onPress={() => setShowApplyDialog(true)}
+          disabled={hasApplied}
         >
-          {applying ? <ActivityIndicator color="white" /> : (
-            <>
-              <Text className={`${hasApplied ? 'text-gray-500' : 'text-white'} text-[16px] font-bold mr-2`} style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
-                {hasApplied ? 'Applied' : 'Apply Now'}
-              </Text>
-              {!hasApplied && <Ionicons name="paper-plane-outline" size={20} color="white" />}
-            </>
-          )}
+          <Text className={`${hasApplied ? 'text-gray-500' : 'text-white'} text-[16px] font-bold mr-2`} style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
+            {hasApplied ? 'Applied' : 'Apply Now'}
+          </Text>
+          {!hasApplied && <Ionicons name="paper-plane-outline" size={20} color="white" />}
         </TouchableOpacity>
       </View>
+
+      {/* Apply Dialog */}
+      <Modal visible={showApplyDialog} transparent animationType="fade">
+        <View className="flex-1 bg-black/50 justify-center items-center px-6">
+          <View className="bg-white w-full rounded-2xl p-6 items-center">
+            <View className="w-16 h-16 bg-blue-50 rounded-full items-center justify-center mb-4">
+              <Ionicons name="document-text-outline" size={32} color="#1B1C62" />
+            </View>
+            <Text className="text-[20px] font-bold text-black mb-2 text-center" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Apply to {job.title}</Text>
+            <Text className="text-[15px] text-[#8E8E93] text-center mb-5 leading-6" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>
+              Upload your CV to submit your application. The employer will be notified.
+            </Text>
+
+            {/* CV Upload */}
+            <TouchableOpacity
+              className="w-full h-12 rounded-xl flex-row items-center justify-center border border-dashed border-[#1B1C62] mb-3"
+              onPress={handlePickCV}
+            >
+              <Ionicons name="document-attach-outline" size={20} color="#1B1C62" />
+              <Text className="text-[#1B1C62] text-[15px] font-bold ml-2" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
+                {cvFile ? 'Change CV' : 'Upload CV'}
+              </Text>
+            </TouchableOpacity>
+
+            {cvFile && (
+              <View className="flex-row items-center w-full mb-4 px-1 bg-[#F6F6F6] rounded-lg py-2.5 px-3">
+                <Ionicons name="document-text" size={18} color="#1B1C62" />
+                <Text className="text-[13px] text-[#4A4A4A] ml-2 flex-1" numberOfLines={1} style={{ fontFamily: 'PlusJakartaSans-Medium' }}>
+                  {cvFile.name}
+                </Text>
+                <TouchableOpacity onPress={() => setCvFile(null)}>
+                  <Ionicons name="close-circle" size={18} color="#8E8E93" />
+                </TouchableOpacity>
+              </View>
+            )}
+
+            <View className="flex-row w-full gap-3 mt-1">
+              <TouchableOpacity className="flex-1 py-3.5 rounded-xl border border-[#E5E5EA] items-center justify-center" onPress={() => { setShowApplyDialog(false); setCvFile(null); }}>
+                <Text className="text-[16px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="flex-1 py-3.5 rounded-xl items-center justify-center bg-[#1B1C62]"
+                onPress={handleApply}
+                disabled={applying}
+              >
+                {applying ? (
+                  <View className="flex-row items-center">
+                    <ActivityIndicator color="white" size="small" />
+                    {uploadingCv && <Text className="text-white text-[12px] ml-1" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>Uploading...</Text>}
+                  </View>
+                ) : (
+                  <Text className="text-[16px] font-bold text-white" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Submit</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }

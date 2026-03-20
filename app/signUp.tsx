@@ -29,13 +29,13 @@ export default function signUp() {
     //   Alert.alert('Sign Up', 'Please use your NTU email address (@e.ntu.edu.sg or @ntu.edu.sg).');
     //   return;
     // }
-    if (role === 'alumni' && !graduationYear.trim()) {
+    if (!graduationYear.trim()) {
       Alert.alert('Sign Up', 'Please enter your graduation year.');
       return;
     }
 
     setLoading(true);
-    const gradYear = role === 'alumni' && graduationYear ? parseInt(graduationYear) : undefined;
+    const gradYear = graduationYear ? parseInt(graduationYear) : undefined;
     const result = await register(email.trim(), password, displayName.trim(), role, gradYear);
     setLoading(false);
 
@@ -150,28 +150,26 @@ export default function signUp() {
                     </View>
                   </View>
 
-                  {/* Graduation Year (alumni only) */}
-                  {role === 'alumni' && (
-                    <View className="gap-1">
-                      <Text style={{fontSize: hp(2)}} className="text-neutral-700">
-                        Graduation Year
-                      </Text>
-                      <View
-                        style={{ height: hp(6), shadowColor: '#000', shadowOpacity: 0.04, shadowOffset: {width: 0, height: 3}, shadowRadius: 6, elevation: 2 }}
-                        className="flex-row items-center rounded-xl bg-white px-4 border border-neutral-300"
-                      >
-                        <TextInput
-                          style={{fontSize: hp(2)}}
-                          className="flex-1 text-neutral-900"
-                          placeholder="e.g. 2024"
-                          placeholderTextColor="#94a3b8"
-                          keyboardType="number-pad"
-                          value={graduationYear}
-                          onChangeText={setGraduationYear}
-                        />
-                      </View>
+                  {/* Graduation Year */}
+                  <View className="gap-1">
+                    <Text style={{fontSize: hp(2)}} className="text-neutral-700">
+                      {role === 'alumni' ? 'Graduation Year' : 'Expected Graduation Year'}
+                    </Text>
+                    <View
+                      style={{ height: hp(6), shadowColor: '#000', shadowOpacity: 0.04, shadowOffset: {width: 0, height: 3}, shadowRadius: 6, elevation: 2 }}
+                      className="flex-row items-center rounded-xl bg-white px-4 border border-neutral-300"
+                    >
+                      <TextInput
+                        style={{fontSize: hp(2)}}
+                        className="flex-1 text-neutral-900"
+                        placeholder="e.g. 2026"
+                        placeholderTextColor="#94a3b8"
+                        keyboardType="number-pad"
+                        value={graduationYear}
+                        onChangeText={setGraduationYear}
+                      />
                     </View>
-                  )}
+                  </View>
                 </View>
 
                 <Pressable

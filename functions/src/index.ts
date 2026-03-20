@@ -7,4 +7,4 @@ export { syncCohortMembership } from './syncCohortMembership';
 export { onReportCreate } from './onReportCreate';
 export { approveContent } from './approveContent';
 export { suspendUser } from './suspendUser';
-// export { sendPushNotification } from './sendPushNotification'; // optional for MVP
+export { onNewMessage } from './onNewMessage';

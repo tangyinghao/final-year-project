@@ -11,7 +11,14 @@ export default function SubmitListingScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const [title, setTitle] = useState('');
+  const [company, setCompany] = useState('');
+  const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
+  const [tagInput, setTagInput] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [expertise, setExpertise] = useState<string[]>([]);
+  const [expertiseInput, setExpertiseInput] = useState('');
+  const [availability, setAvailability] = useState('');
   const [listingType, setListingType] = useState<'Job' | 'Mentorship'>('Job');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -19,9 +26,39 @@ export default function SubmitListingScreen() {
   const titleRef = React.useRef<TextInput>(null);
   const descRef = React.useRef<TextInput>(null);
 
+  const addTag = () => {
+    const newTags = tagInput
+      .split(',')
+      .map((t) => t.trim())
+      .filter((t) => t && !tags.includes(t));
+    if (newTags.length > 0) {
+      setTags([...tags, ...newTags]);
+    }
+    setTagInput('');
+  };
+
+  const removeTag = (tag: string) => setTags(tags.filter((t) => t !== tag));
+
+  const addExpertise = () => {
+    const newItems = expertiseInput
+      .split(',')
+      .map((e) => e.trim())
+      .filter((e) => e && !expertise.includes(e));
+    if (newItems.length > 0) {
+      setExpertise([...expertise, ...newItems]);
+    }
+    setExpertiseInput('');
+  };
+
+  const removeExpertise = (item: string) => setExpertise(expertise.filter((e) => e !== item));
+
   const handleSubmit = () => {
     if (!title.trim()) {
       titleRef.current?.focus();
+      return;
+    }
+    if (!company.trim()) {
+      Alert.alert('Required', 'Please enter a company name.');
       return;
     }
     if (!description.trim()) {
@@ -38,20 +75,20 @@ export default function SubmitListingScreen() {
       if (listingType === 'Job') {
         await createJob(user.uid, user.displayName, {
           title: title.trim(),
-          company: '',
+          company: company.trim(),
           description: description.trim(),
-          location: '',
-          tags: [],
+          location: location.trim(),
+          tags,
         });
       } else {
         await createMentorship(user.uid, user.displayName, {
           title: title.trim(),
-          company: '',
+          company: company.trim(),
           description: description.trim(),
-          expertise: [],
-          availability: '',
-          location: '',
-          tags: [],
+          expertise,
+          availability: availability.trim(),
+          location: location.trim(),
+          tags,
         });
       }
       setShowConfirmModal(false);
@@ -81,7 +118,7 @@ export default function SubmitListingScreen() {
           className="w-16 h-10 items-center justify-center -mr-2"
           onPress={handleSubmit}
         >
-          <Text className={`text-[16px] font-bold ${title.trim() && description.trim() ? 'text-[#1B1C62]' : 'text-gray-300'}`} style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
+          <Text className={`text-[16px] font-bold ${title.trim() && company.trim() && description.trim() ? 'text-[#1B1C62]' : 'text-gray-300'}`} style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
             Submit
           </Text>
         </TouchableOpacity>
@@ -130,18 +167,38 @@ export default function SubmitListingScreen() {
                   ref={titleRef}
                   className="text-[17px] text-black font-bold"
                   style={{ fontFamily: 'PlusJakartaSans-Bold' }}
-                  placeholder="Job Title (e.g. Software Engineer)"
+                  placeholder={listingType === 'Job' ? 'Job Title (e.g. Software Engineer)' : 'Title (e.g. Career Mentor)'}
                   placeholderTextColor="#C7C7CC"
                   value={title}
                   onChangeText={setTitle}
                 />
               </View>
-              <View className="px-4 py-3 h-48">
+              <View className="px-4 py-3 border-b border-[#E5E5EA]">
+                <TextInput
+                  className="text-[16px] text-black"
+                  style={{ fontFamily: 'PlusJakartaSans-Regular' }}
+                  placeholder="Company Name"
+                  placeholderTextColor="#C7C7CC"
+                  value={company}
+                  onChangeText={setCompany}
+                />
+              </View>
+              <View className="px-4 py-3 border-b border-[#E5E5EA]">
+                <TextInput
+                  className="text-[16px] text-black"
+                  style={{ fontFamily: 'PlusJakartaSans-Regular' }}
+                  placeholder="Location (e.g. Singapore, Remote)"
+                  placeholderTextColor="#C7C7CC"
+                  value={location}
+                  onChangeText={setLocation}
+                />
+              </View>
+              <View className="px-4 py-3 h-36">
                 <TextInput
                   ref={descRef}
                   className="flex-1 text-[16px] text-black"
                   style={{ fontFamily: 'PlusJakartaSans-Regular' }}
-                  placeholder="Company name, requirements, responsibilities..."
+                  placeholder={listingType === 'Job' ? 'Requirements, responsibilities, benefits...' : 'Describe what you can offer as a mentor...'}
                   placeholderTextColor="#C7C7CC"
                   multiline
                   textAlignVertical="top"
@@ -151,6 +208,96 @@ export default function SubmitListingScreen() {
               </View>
             </View>
           </View>
+
+          {/* Tags */}
+          <View className="mt-5 px-5">
+            <View className="flex-row items-center justify-between mb-2 ml-1">
+              <Text className="text-[14px] text-[#8E8E93] uppercase font-medium" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>Tags</Text>
+              <Text className="text-[12px] text-[#AEAEB2]" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>Separate with commas</Text>
+            </View>
+            <View className="bg-white rounded-xl border border-[#E5E5EA] overflow-hidden">
+              <View className="flex-row items-center px-4 py-3">
+                <TextInput
+                  className="flex-1 text-[16px] text-black"
+                  style={{ fontFamily: 'PlusJakartaSans-Regular' }}
+                  placeholder="e.g. Full-Time, React, Remote"
+                  placeholderTextColor="#C7C7CC"
+                  value={tagInput}
+                  onChangeText={setTagInput}
+                  onSubmitEditing={addTag}
+                  returnKeyType="done"
+                />
+                <TouchableOpacity onPress={addTag} className="ml-2 px-3 py-1.5 bg-[#1B1C62] rounded-lg">
+                  <Text className="text-white text-[13px] font-bold" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Add</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+            {tags.length > 0 && (
+              <View className="flex-row flex-wrap gap-2 mt-2">
+                {tags.map((tag) => (
+                  <TouchableOpacity key={tag} onPress={() => removeTag(tag)} className="flex-row items-center bg-[#EBF4FE] px-3 py-1.5 rounded-full">
+                    <Text className="text-[13px] text-[#1B1C62] mr-1" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>{tag}</Text>
+                    <Ionicons name="close-circle" size={16} color="#1B1C62" />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
+
+          {/* Mentorship-specific fields */}
+          {listingType === 'Mentorship' && (
+            <>
+              <View className="mt-5 px-5">
+                <View className="flex-row items-center justify-between mb-2 ml-1">
+                  <Text className="text-[14px] text-[#8E8E93] uppercase font-medium" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>Expertise Areas</Text>
+                  <Text className="text-[12px] text-[#AEAEB2]" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>Separate with commas</Text>
+                </View>
+                <View className="bg-white rounded-xl border border-[#E5E5EA] overflow-hidden">
+                  <View className="flex-row items-center px-4 py-3">
+                    <TextInput
+                      className="flex-1 text-[16px] text-black"
+                      style={{ fontFamily: 'PlusJakartaSans-Regular' }}
+                      placeholder="e.g. Resume Review, Career Planning"
+                      placeholderTextColor="#C7C7CC"
+                      value={expertiseInput}
+                      onChangeText={setExpertiseInput}
+                      onSubmitEditing={addExpertise}
+                      returnKeyType="done"
+                    />
+                    <TouchableOpacity onPress={addExpertise} className="ml-2 px-3 py-1.5 bg-[#1B1C62] rounded-lg">
+                      <Text className="text-white text-[13px] font-bold" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Add</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+                {expertise.length > 0 && (
+                  <View className="flex-row flex-wrap gap-2 mt-2">
+                    {expertise.map((item) => (
+                      <TouchableOpacity key={item} onPress={() => removeExpertise(item)} className="flex-row items-center bg-[#EBF4FE] px-3 py-1.5 rounded-full">
+                        <Text className="text-[13px] text-[#1B1C62] mr-1" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>{item}</Text>
+                        <Ionicons name="close-circle" size={16} color="#1B1C62" />
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+
+              <View className="mt-5 px-5">
+                <Text className="text-[14px] text-[#8E8E93] uppercase mb-2 ml-1 font-medium" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>Availability</Text>
+                <View className="bg-white rounded-xl border border-[#E5E5EA] overflow-hidden">
+                  <View className="px-4 py-3">
+                    <TextInput
+                      className="text-[16px] text-black"
+                      style={{ fontFamily: 'PlusJakartaSans-Regular' }}
+                      placeholder="e.g. Weekday evenings, 2 hours/week"
+                      placeholderTextColor="#C7C7CC"
+                      value={availability}
+                      onChangeText={setAvailability}
+                    />
+                  </View>
+                </View>
+              </View>
+            </>
+          )}
 
           <Text className="px-6 mt-3 text-[13px] text-[#8E8E93] leading-5" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>
             All listings submitted by Alumni will be reviewed by an Administrator before appearing on the public Careers board.

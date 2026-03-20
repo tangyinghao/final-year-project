@@ -1,9 +1,12 @@
 import { Stack } from 'expo-router';
+import { UnreadProvider } from '@/context/unreadContext';
 
 export default function AppLayout() {
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(tabs)" />
-    </Stack>
+    <UnreadProvider>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" />
+      </Stack>
+    </UnreadProvider>
   );
 }

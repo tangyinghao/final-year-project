@@ -12,8 +12,20 @@ import {
   setDoc,
   Timestamp,
 } from 'firebase/firestore';
-import { db } from '@/config/firebaseConfig';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '@/config/firebaseConfig';
 import { Job, Mentorship, JobApplication, MentorshipRequest } from '@/types';
+
+function uriToBlob(uri: string): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.onload = () => resolve(xhr.response as Blob);
+    xhr.onerror = () => reject(new Error('Failed to create blob'));
+    xhr.responseType = 'blob';
+    xhr.open('GET', uri, true);
+    xhr.send(null);
+  });
+}
 
 // ── Jobs ─────────────────────────────────────────────────────────────
 export async function getApprovedJobs(): Promise<Job[]> {
@@ -50,6 +62,13 @@ export async function createJob(
     updatedAt: serverTimestamp(),
   });
   return docRef.id;
+}
+
+export async function uploadCV(uid: string, fileUri: string, fileName: string): Promise<string> {
+  const blob = await uriToBlob(fileUri);
+  const storageRef = ref(storage, `cv-uploads/${uid}/${fileName}`);
+  await uploadBytes(storageRef, blob);
+  return getDownloadURL(storageRef);
 }
 
 export async function applyToJob(

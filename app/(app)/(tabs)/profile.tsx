@@ -1,11 +1,13 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Image } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, Image, Switch, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/context/authContext';
 import { DEFAULT_AVATAR } from '@/constants/images';
+import { registerForPushNotificationsAsync, savePushToken, removePushToken } from '@/services/pushNotificationService';
+import { updateUserProfile } from '@/services/userService';
 
 const MENU_ITEMS = [
   { icon: 'notifications-outline', title: 'Notifications', route: '/notifications' },
@@ -15,6 +17,48 @@ const MENU_ITEMS = [
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, logout } = useAuth();
+  const [notifEnabled, setNotifEnabled] = useState(user?.notificationsEnabled ?? true);
+  const [toggling, setToggling] = useState(false);
+
+  // Register push token on mount if notifications are enabled
+  useEffect(() => {
+    if (!user?.uid || !notifEnabled) return;
+    (async () => {
+      try {
+        const token = await registerForPushNotificationsAsync();
+        if (token && token !== user.expoPushToken) {
+          await savePushToken(user.uid, token);
+        }
+      } catch (e) {
+        // Silently fail in Expo Go / emulator where push is unsupported
+        console.log('Push token registration skipped:', e);
+      }
+    })();
+  }, [user?.uid, notifEnabled]);
+
+  const handleToggleNotifications = async (value: boolean) => {
+    if (!user?.uid || toggling) return;
+    setToggling(true);
+    try {
+      if (value) {
+        const token = await registerForPushNotificationsAsync();
+        if (!token) {
+          Alert.alert('Permission Required', 'Push notifications require a development build. They are not supported in Expo Go.');
+          setToggling(false);
+          return;
+        }
+        await savePushToken(user.uid, token);
+      } else {
+        await removePushToken(user.uid);
+      }
+      await updateUserProfile(user.uid, { notificationsEnabled: value } as any);
+      setNotifEnabled(value);
+    } catch {
+      Alert.alert('Not Available', 'Push notifications require a development build and are not supported in Expo Go.');
+    } finally {
+      setToggling(false);
+    }
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -90,6 +134,24 @@ export default function ProfileScreen() {
               )}
             </React.Fragment>
           ))}
+          <View className="h-[1px] bg-[#E5E5EA] ml-11" />
+
+          <View className="flex-row items-center py-4 pr-2">
+            <View className="w-8 items-center justify-center mr-3">
+              <Ionicons name="notifications" size={24} color="#1B1C62" />
+            </View>
+            <Text className="flex-1 text-[16px] text-black" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>
+              Push Notifications
+            </Text>
+            <Switch
+              value={notifEnabled}
+              onValueChange={handleToggleNotifications}
+              disabled={toggling}
+              trackColor={{ false: '#E5E5EA', true: '#1B1C62' }}
+              thumbColor="white"
+            />
+          </View>
+
           <View className="h-[1px] bg-[#E5E5EA] ml-11" />
 
           <View className="flex-row items-center py-4 active:bg-gray-50 pr-2">

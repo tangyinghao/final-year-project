@@ -67,6 +67,19 @@ export default function ChatsScreen() {
     return 'Yesterday';
   };
 
+  // Calculate total unread count and set app badge
+  useEffect(() => {
+    let total = 0;
+    chats.forEach((chat) => {
+      const count = (chat as any).unreadCount?.[user?.uid || ''] || 0;
+      total += count;
+    });
+    // Dynamic import to avoid crashing in Expo Go where push notifications are unsupported
+    import('expo-notifications')
+      .then((Notifications) => Notifications.setBadgeCountAsync(total))
+      .catch(() => {});
+  }, [chats, user?.uid]);
+
   const filteredChats = chats.filter((chat) => {
     if (!searchQuery) return true;
     const display = getChatDisplay(chat);
@@ -119,7 +132,8 @@ export default function ChatsScreen() {
                 : item.lastMessage.text)
             : 'No messages yet';
 
-          const isUnread = !!(item as any).unreadBy?.[user?.uid || ''];
+          const unreadNum: number = (item as any).unreadCount?.[user?.uid || ''] || 0;
+          const isUnread = unreadNum > 0;
 
           return (
             <TouchableOpacity
@@ -144,7 +158,11 @@ export default function ChatsScreen() {
                       {formatTime(item)}
                     </Text>
                     {isUnread && (
-                      <View className="w-3 h-3 rounded-full bg-[#1B1C62] ml-2" />
+                      <View className="min-w-[20px] h-5 rounded-full bg-[#1B1C62] ml-2 items-center justify-center px-1.5">
+                        <Text className="text-white text-[11px] font-bold" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
+                          {unreadNum > 99 ? '99+' : unreadNum}
+                        </Text>
+                      </View>
                     )}
                   </View>
                 </View>
