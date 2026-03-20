@@ -1,64 +1,108 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
-
-const SUGGESTED_CONTACTS = [
-  { id: 1, name: 'Marcus Chen', role: 'Software Eng @ Grab', avatar: 'https://i.pravatar.cc/150?u=marcus' },
-  { id: 2, name: 'Sarah Lim', role: 'CS Year 3 student', avatar: 'https://i.pravatar.cc/150?u=sarah' },
-  { id: 3, name: 'Dr. Michael Tan', role: 'Alumni | Data Scientist', avatar: 'https://i.pravatar.cc/150?u=michael' },
-];
+import { useAuth } from '@/context/authContext';
+import { getAllActiveUsers, searchUsers } from '@/services/userService';
+import { createDirectChat, createGroupChat } from '@/services/chatService';
+import { UserProfile } from '@/types';
+import { DEFAULT_AVATAR } from '@/constants/images';
 
 export default function CreateChatScreen() {
   const router = useRouter();
-  
-  // Set default selected user to "Marcus Chen" as requested
-  const [selectedUsers, setSelectedUsers] = useState<any[]>([SUGGESTED_CONTACTS[0]]);
+  const { user } = useAuth();
+  const [contacts, setContacts] = useState<UserProfile[]>([]);
+  const [selectedUsers, setSelectedUsers] = useState<UserProfile[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
 
-  const toggleUserSelection = (user: any) => {
-    if (selectedUsers.some(u => u.id === user.id)) {
-      setSelectedUsers(selectedUsers.filter(u => u.id !== user.id));
+  useEffect(() => {
+    if (!user?.uid) return;
+    (async () => {
+      const users = await getAllActiveUsers(user.uid);
+      setContacts(users);
+      setLoading(false);
+    })();
+  }, [user?.uid]);
+
+  useEffect(() => {
+    if (!user?.uid || !searchQuery.trim()) return;
+    const timeout = setTimeout(async () => {
+      const results = await searchUsers(searchQuery.trim(), user.uid);
+      setContacts(results);
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [searchQuery, user?.uid]);
+
+  const toggleUserSelection = (u: UserProfile) => {
+    if (selectedUsers.some((s) => s.uid === u.uid)) {
+      setSelectedUsers(selectedUsers.filter((s) => s.uid !== u.uid));
     } else {
-      setSelectedUsers([...selectedUsers, user]);
+      setSelectedUsers([...selectedUsers, u]);
     }
   };
 
-  const handleCreateChat = () => {
-    if (selectedUsers.length > 0) {
-      // In production, instantiate Firestore chat thread here
-      // For testing, just go to the chat detail screen
-      router.push(`/chat/${selectedUsers[0].id}?name=${encodeURIComponent(selectedUsers[0].name)}` as any);
+  const handleCreateChat = async () => {
+    if (selectedUsers.length === 0 || !user) return;
+    setCreating(true);
+    try {
+      let chatId: string;
+      if (selectedUsers.length === 1) {
+        chatId = await createDirectChat(user.uid, selectedUsers[0].uid);
+      } else {
+        const name = selectedUsers.map((u) => u.displayName.split(' ')[0]).join(', ');
+        chatId = await createGroupChat(
+          user.uid,
+          selectedUsers.map((u) => u.uid),
+          name
+        );
+      }
+      router.replace(
+        `/chat/${chatId}?name=${encodeURIComponent(
+          selectedUsers.length === 1
+            ? selectedUsers[0].displayName
+            : selectedUsers.map((u) => u.displayName.split(' ')[0]).join(', ')
+        )}${selectedUsers.length > 1 ? '&isGroup=true' : ''}` as any
+      );
+    } catch (e) {
+      console.error('Failed to create chat:', e);
+    } finally {
+      setCreating(false);
     }
   };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar style="dark" />
-      
+
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 py-3 bg-white border-b border-[#E5E5EA]">
         <TouchableOpacity onPress={() => router.back()} className="w-16 h-10 items-center justify-center -ml-2">
           <Text className="text-[16px] text-gray-500" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>Cancel</Text>
         </TouchableOpacity>
-        
+
         <Text className="text-[18px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
           New Message
         </Text>
 
-        <TouchableOpacity 
-          onPress={handleCreateChat} 
-          disabled={selectedUsers.length === 0}
+        <TouchableOpacity
+          onPress={handleCreateChat}
+          disabled={selectedUsers.length === 0 || creating}
           className="w-16 h-10 items-center justify-center -mr-2"
         >
-          <Text 
-            className={`text-[16px] font-bold ${selectedUsers.length > 0 ? 'text-[#1B1C62]' : 'text-gray-400'}`} 
-            style={{ fontFamily: 'PlusJakartaSans-Bold' }}
-          >
-            Create
-          </Text>
+          {creating ? (
+            <ActivityIndicator size="small" color="#1B1C62" />
+          ) : (
+            <Text
+              className={`text-[16px] font-bold ${selectedUsers.length > 0 ? 'text-[#1B1C62]' : 'text-gray-400'}`}
+              style={{ fontFamily: 'PlusJakartaSans-Bold' }}
+            >
+              Create
+            </Text>
+          )}
         </TouchableOpacity>
       </View>
 
@@ -67,11 +111,11 @@ export default function CreateChatScreen() {
         <View className="px-5 pt-4 pb-2 border-b border-[#E5E5EA]">
           <View className="flex-row items-center flex-wrap gap-2 mb-1">
             <Text className="text-[16px] text-[#8E8E93] mr-1" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>To:</Text>
-            
-            {selectedUsers.length > 0 && selectedUsers.map(user => (
-              <View key={user.id} className="flex-row items-center bg-[#EBF4FE] px-3 py-1.5 rounded-full border border-[#D0E6FC] mb-1">
-                <Text className="text-[14px] text-[#1B1C62] font-medium" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>{user.name}</Text>
-                <TouchableOpacity onPress={() => toggleUserSelection(user)} className="ml-1 items-center justify-center">
+
+            {selectedUsers.map((u) => (
+              <View key={u.uid} className="flex-row items-center bg-[#EBF4FE] px-3 py-1.5 rounded-full border border-[#D0E6FC] mb-1">
+                <Text className="text-[14px] text-[#1B1C62] font-medium" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>{u.displayName}</Text>
+                <TouchableOpacity onPress={() => toggleUserSelection(u)} className="ml-1 items-center justify-center">
                   <Ionicons name="close-circle" size={16} color="#1B1C62" />
                 </TouchableOpacity>
               </View>
@@ -80,7 +124,7 @@ export default function CreateChatScreen() {
             <TextInput
               className="flex-1 text-[16px] text-black py-1 mb-1"
               style={{ fontFamily: 'PlusJakartaSans-Regular' }}
-              placeholder={selectedUsers.length === 0 ? "Search contacts..." : ""}
+              placeholder={selectedUsers.length === 0 ? 'Search contacts...' : ''}
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
@@ -88,9 +132,9 @@ export default function CreateChatScreen() {
         </View>
 
         {/* Algorithm Matching Banner */}
-        <TouchableOpacity 
+        <TouchableOpacity
           className="m-5 p-4 bg-[#EBF4FE] rounded-xl flex-row items-center justify-between border border-[#D0E6FC]"
-          onPress={() => router.push('/chat/smart_match_settings')} // Route to smart match settings screen
+          onPress={() => router.push('/chat/smart_match_settings')}
         >
           <View className="flex-1 mr-3">
             <View className="flex-row items-center mb-1">
@@ -104,28 +148,48 @@ export default function CreateChatScreen() {
           <Ionicons name="chevron-forward" size={20} color="#1B1C62" />
         </TouchableOpacity>
 
-        {/* Suggested Contacts */}
+        {/* Contacts */}
         <View className="pt-2">
-          <Text className="px-5 text-[14px] text-[#8E8E93] uppercase mb-2 font-medium" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>Suggested Contacts</Text>
-          {SUGGESTED_CONTACTS.map((user) => {
-            const isSelected = selectedUsers.some(u => u.id === user.id);
-            return (
-              <TouchableOpacity 
-                key={user.id} 
-                className="flex-row items-center px-5 py-3 border-b border-[#E5E5EA] active:bg-gray-50"
-                onPress={() => toggleUserSelection(user)}
-              >
-                <Image source={{ uri: user.avatar }} className="w-12 h-12 rounded-full bg-gray-200" />
-                <View className="flex-1 ml-4 justify-center">
-                  <Text className="text-[16px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{user.name}</Text>
-                  <Text className="text-[13px] text-[#8E8E93] mt-0.5" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>{user.role}</Text>
-                </View>
-                <View className={`w-6 h-6 rounded-full border-2 items-center justify-center ${isSelected ? 'bg-[#1B1C62] border-[#1B1C62]' : 'border-[#C7C7CC]'}`}>
-                  {isSelected && <Ionicons name="checkmark" size={16} color="white" />}
-                </View>
-              </TouchableOpacity>
-            );
-          })}
+          <Text className="px-5 text-[14px] text-[#8E8E93] uppercase mb-2 font-medium" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>
+            {searchQuery ? 'Results' : 'Suggested Contacts'}
+          </Text>
+
+          {loading ? (
+            <ActivityIndicator style={{ marginTop: 20 }} color="#1B1C62" />
+          ) : (
+            contacts.map((u) => {
+              const isSelected = selectedUsers.some((s) => s.uid === u.uid);
+              return (
+                <TouchableOpacity
+                  key={u.uid}
+                  className="flex-row items-center px-5 py-3 border-b border-[#E5E5EA] active:bg-gray-50"
+                  onPress={() => toggleUserSelection(u)}
+                >
+                  <Image
+                    source={u.profilePhoto ? { uri: u.profilePhoto } : DEFAULT_AVATAR}
+                    className="w-12 h-12 rounded-full bg-gray-200"
+                  />
+                  <View className="flex-1 ml-4 justify-center">
+                    <Text className="text-[16px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{u.displayName}</Text>
+                    <Text className="text-[13px] text-[#8E8E93] mt-0.5" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>
+                      {u.role === 'alumni' ? `Alumni${u.programme ? ` | ${u.programme}` : ''}` : u.programme || u.role}
+                    </Text>
+                  </View>
+                  <View className={`w-6 h-6 rounded-full border-2 items-center justify-center ${isSelected ? 'bg-[#1B1C62] border-[#1B1C62]' : 'border-[#C7C7CC]'}`}>
+                    {isSelected && <Ionicons name="checkmark" size={16} color="white" />}
+                  </View>
+                </TouchableOpacity>
+              );
+            })
+          )}
+
+          {!loading && contacts.length === 0 && (
+            <View className="items-center pt-10">
+              <Text className="text-[15px] text-[#8E8E93]" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>
+                No contacts found.
+              </Text>
+            </View>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>

@@ -18,6 +18,10 @@ tailwind.config.js.map
 firebase-debug.log
 google-services.json
 GoogleService-Info.plist
+functions/lib/
+functions/node_modules/
+**/serviceAccountKey.json
+functions/seedFirestore.js
 
 # Environment
 .env

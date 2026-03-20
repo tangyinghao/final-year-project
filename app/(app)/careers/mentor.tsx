@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
+import { DEFAULT_AVATAR } from '@/constants/images';
 
 const TAGS = ['Resume Review', 'Mock Interviews', 'Career Guidance'];
 
@@ -29,7 +30,7 @@ export default function MentorDetailScreen() {
         {/* Mentor Info Header */}
         <View className="items-center pt-8 pb-6 px-4 bg-[#F6F6F6] border-b border-[#E5E5EA]">
           <Image
-            source={{ uri: 'https://i.pravatar.cc/300?u=sarah' }}
+            source={DEFAULT_AVATAR}
             className="w-24 h-24 rounded-full mb-4 border-4 border-white shadow-sm"
           />
           <Text className="text-[24px] font-bold text-black mb-1" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Dr. Sarah Lee</Text>

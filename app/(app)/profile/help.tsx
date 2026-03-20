@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Linking, Modal } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import React, { useState } from 'react';
+import { Linking, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const FAQ_ITEMS = [
   { question: 'How to create an event?', answer: 'Navigate to the Events tab and tap the + icon in the top right corner. Fill in the event details and submit it for admin approval.' },
@@ -52,8 +52,8 @@ export default function HelpSupportScreen() {
           <View className="flex-row items-center bg-[#F6F6F6] rounded-xl px-4 py-3">
             <Ionicons name="search" size={20} color="#8E8E93" />
             <TextInput
-              className="flex-1 ml-3 text-[16px] text-black"
-              style={{ fontFamily: 'PlusJakartaSans-Regular', height: 24 }}
+              className="flex-1 ml-3 text-black"
+              style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 16 }}
               placeholder="Search for help..."
               placeholderTextColor="#8E8E93"
               value={searchQuery}
@@ -100,15 +100,15 @@ export default function HelpSupportScreen() {
 
         {/* Contact Us Section */}
         <View className="px-5 pb-20 items-center">
-            <Text className="text-[17px] font-bold text-black mb-1" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Still need help?</Text>
-            <Text className="text-[14px] text-[#8E8E93] text-center mb-5" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>We're here to assist you anytime.</Text>
-            <TouchableOpacity
-              className="w-full bg-[#1B1C62] py-4 rounded-xl items-center justify-center flex-row"
-              onPress={handleContactUs}
-            >
-              <Ionicons name="mail" size={20} color="white" />
-              <Text className="text-white text-[16px] font-bold ml-2" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Contact Us</Text>
-            </TouchableOpacity>
+          <Text className="text-[17px] font-bold text-black mb-1" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Still need help?</Text>
+          <Text className="text-[14px] text-[#8E8E93] text-center mb-5" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>We're here to assist you anytime.</Text>
+          <TouchableOpacity
+            className="w-full bg-[#1B1C62] py-4 rounded-xl items-center justify-center flex-row"
+            onPress={handleContactUs}
+          >
+            <Ionicons name="mail" size={20} color="white" />
+            <Text className="text-white text-[16px] font-bold ml-2" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Contact Us</Text>
+          </TouchableOpacity>
         </View>
 
       </ScrollView>

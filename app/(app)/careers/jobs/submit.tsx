@@ -1,17 +1,21 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Modal } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Modal, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
+import { useAuth } from '@/context/authContext';
+import { createJob, createMentorship } from '@/services/careerService';
 
 export default function SubmitListingScreen() {
   const router = useRouter();
+  const { user } = useAuth();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [listingType, setListingType] = useState<'Job' | 'Mentorship'>('Job');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  
+  const [submitting, setSubmitting] = useState(false);
+
   const titleRef = React.useRef<TextInput>(null);
   const descRef = React.useRef<TextInput>(null);
 
@@ -27,9 +31,38 @@ export default function SubmitListingScreen() {
     setShowConfirmModal(true);
   };
 
-  const confirmSubmit = () => {
-    setShowConfirmModal(false);
-    router.back();
+  const confirmSubmit = async () => {
+    if (!user) return;
+    setSubmitting(true);
+    try {
+      if (listingType === 'Job') {
+        await createJob(user.uid, user.displayName, {
+          title: title.trim(),
+          company: '',
+          description: description.trim(),
+          location: '',
+          tags: [],
+        });
+      } else {
+        await createMentorship(user.uid, user.displayName, {
+          title: title.trim(),
+          company: '',
+          description: description.trim(),
+          expertise: [],
+          availability: '',
+          location: '',
+          tags: [],
+        });
+      }
+      setShowConfirmModal(false);
+      Alert.alert('Submitted', 'Your listing has been submitted for review.');
+      router.back();
+    } catch (e) {
+      setShowConfirmModal(false);
+      Alert.alert('Error', 'Failed to submit listing.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -149,11 +182,14 @@ export default function SubmitListingScreen() {
               >
                 <Text className="text-[16px] font-bold text-[#666666]" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
+              <TouchableOpacity
                 className="flex-1 py-3.5 rounded-xl bg-[#1B1C62] items-center"
                 onPress={confirmSubmit}
+                disabled={submitting}
               >
-                <Text className="text-[16px] font-bold text-white" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Confirm</Text>
+                {submitting ? <ActivityIndicator color="white" /> : (
+                  <Text className="text-[16px] font-bold text-white" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Confirm</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>

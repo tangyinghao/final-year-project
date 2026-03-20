@@ -1,33 +1,51 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Image, Modal, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
-
-const MOCK_GROUP_MEMBERS = [
-  { id: 1, name: 'Marcus Chen', role: 'Software Eng @ Grab', avatar: 'https://i.pravatar.cc/150?u=marcus' },
-  { id: 2, name: 'Sarah Lim', role: 'CS Year 3 student', avatar: 'https://i.pravatar.cc/150?u=sarah' },
-  { id: 3, name: 'Dr. Michael Tan', role: 'Alumni | Data Scientist', avatar: 'https://i.pravatar.cc/150?u=michael' },
-  { id: 4, name: 'You', role: 'MSc EEE', avatar: 'https://i.pravatar.cc/150?u=you' },
-];
-
-const MOCK_MESSAGES = [
-  { id: '1', text: 'Come join us for badminton tomorrow!', isSender: false, time: '12:39 PM' },
-  { id: '2', text: 'Sure! Who else is coming?', isSender: true, time: '12:40 PM' },
-  { id: '3', text: 'James, Yutong and I! See you!', isSender: false, time: '12:41 PM' },
-];
+import { useAuth } from '@/context/authContext';
+import { subscribeToMessages, sendMessage as sendChatMessage, getChatParticipantIds, markChatAsRead } from '@/services/chatService';
+import { getUsersByIds } from '@/services/userService';
+import { Message, UserProfile } from '@/types';
+import { DEFAULT_AVATAR } from '@/constants/images';
 
 export default function ChatDetailScreen() {
   const router = useRouter();
+  const { user } = useAuth();
   const { id, name, avatar, isGroup } = useLocalSearchParams();
+  const chatId = id as string;
   const [inputText, setInputText] = useState('');
-  const [messages, setMessages] = useState(MOCK_MESSAGES);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [members, setMembers] = useState<UserProfile[]>([]);
   const [showGroupInfo, setShowGroupInfo] = useState(false);
+  const scrollRef = useRef<ScrollView>(null);
 
   const overlayOpacity = useRef(new Animated.Value(0)).current;
   const sheetTranslateY = useRef(new Animated.Value(300)).current;
   const sheetScale = useRef(new Animated.Value(0.95)).current;
+
+  useEffect(() => {
+    if (!chatId) return;
+    // Mark chat as read when opened
+    if (user?.uid) markChatAsRead(chatId, user.uid);
+    const unsub = subscribeToMessages(chatId, (msgs) => {
+      setMessages(msgs);
+      setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
+      // Mark as read whenever new messages arrive
+      if (user?.uid) markChatAsRead(chatId, user.uid);
+    });
+    return unsub;
+  }, [chatId]);
+
+  useEffect(() => {
+    if (!chatId) return;
+    (async () => {
+      const participantIds = await getChatParticipantIds(chatId);
+      const profiles = await getUsersByIds(participantIds);
+      setMembers(profiles);
+    })();
+  }, [chatId]);
 
   const openGroupInfo = () => {
     overlayOpacity.setValue(0);
@@ -49,11 +67,11 @@ export default function ChatDetailScreen() {
     ]).start(() => setShowGroupInfo(false));
   };
 
-  const sendMessage = () => {
-    if (inputText.trim()) {
-      setMessages([...messages, { id: Date.now().toString(), text: inputText, isSender: true, time: 'Just now' }]);
-      setInputText('');
-    }
+  const handleSendMessage = async () => {
+    if (!inputText.trim() || !user) return;
+    const text = inputText.trim();
+    setInputText('');
+    await sendChatMessage(chatId, user.uid, user.displayName, text);
   };
 
   return (
@@ -72,18 +90,19 @@ export default function ChatDetailScreen() {
             if (isGroup === 'true') {
               openGroupInfo();
             } else {
-              router.push(`/profile/view/${id}` as any);
+              // For direct chats, find the other user's ID
+              const otherMember = members.find((m) => m.uid !== user?.uid);
+              if (otherMember) router.push(`/profile/view/${otherMember.uid}` as any);
             }
           }}
         >
           <Text className="text-[18px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
-            {name || 'Ivy Xu'}
+            {name || 'Chat'}
           </Text>
           {isGroup === 'true' && (
             <Text className="text-[11px] text-[#8E8E93]" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>Tap for group info</Text>
           )}
         </TouchableOpacity>
-        {/* Balance for center alignment */}
         <View className="w-10" />
       </View>
 
@@ -91,43 +110,52 @@ export default function ChatDetailScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
       >
-        <ScrollView className="flex-1 px-4 pt-4" showsVerticalScrollIndicator={false}>
-          {/* Timestamp */}
-          <Text className="text-center text-[11px] text-[#8E8E93] mb-6" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>
-            30 Sep 2025 12:39PM
-          </Text>
-
-          {/* Messages */}
-          {MOCK_MESSAGES.map((msg) => (
-            <View key={msg.id} className={`flex-row mb-4 ${msg.isSender ? 'justify-end' : 'justify-start'}`}>
-              {!msg.isSender && (
-                <Image
-                  source={{ uri: typeof avatar === 'string' ? avatar : 'https://i.pravatar.cc/150?u=ivy' }}
-                  className="w-8 h-8 rounded-full mr-2 self-end mb-1"
-                />
-              )}
-
-              <View
-                className={`max-w-[75%] px-4 py-3 rounded-2xl ${
-                  msg.isSender ? 'bg-[#DFF0FF] rounded-br-sm' : 'bg-white rounded-bl-sm border border-[#E5E5EA]'
-                }`}
-              >
-                <Text
-                  className={`text-[15px] leading-5 ${msg.isSender ? 'text-[#1B1C62]' : 'text-black'}`}
-                  style={{ fontFamily: 'PlusJakartaSans-Regular' }}
+        <ScrollView ref={scrollRef} className="flex-1 px-4 pt-4" contentContainerStyle={{paddingBottom: 16}} showsVerticalScrollIndicator={false}>
+          {messages.map((msg) => {
+            const isSender = msg.senderId === user?.uid;
+            const senderProfile = members.find((m) => m.uid === msg.senderId);
+            return (
+              <View key={msg.id} className={`flex-row mb-4 ${isSender ? 'justify-end' : 'justify-start'}`}>
+                {!isSender && (
+                  <Image
+                    source={senderProfile?.profilePhoto ? { uri: senderProfile.profilePhoto } : (typeof avatar === 'string' ? { uri: avatar } : DEFAULT_AVATAR)}
+                    className="w-8 h-8 rounded-full mr-2 self-end mb-1"
+                  />
+                )}
+                <View
+                  className={`max-w-[75%] px-4 py-3 rounded-2xl ${
+                    isSender ? 'bg-[#DFF0FF] rounded-br-sm' : 'bg-white rounded-bl-sm border border-[#E5E5EA]'
+                  }`}
                 >
-                  {msg.text}
-                </Text>
+                  {!isSender && isGroup === 'true' && (
+                    <Text className="text-[11px] text-[#8E8E93] mb-1" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>
+                      {msg.senderName}
+                    </Text>
+                  )}
+                  <Text
+                    className={`text-[15px] leading-5 ${isSender ? 'text-[#1B1C62]' : 'text-black'}`}
+                    style={{ fontFamily: 'PlusJakartaSans-Regular' }}
+                  >
+                    {msg.text}
+                  </Text>
+                </View>
+                {isSender && (
+                  <Image
+                    source={user?.profilePhoto ? { uri: user.profilePhoto } : DEFAULT_AVATAR}
+                    className="w-8 h-8 rounded-full ml-2 self-end mb-1"
+                  />
+                )}
               </View>
+            );
+          })}
 
-              {msg.isSender && (
-                <Image
-                  source={{ uri: 'https://i.pravatar.cc/150?u=you' }}
-                  className="w-8 h-8 rounded-full ml-2 self-end mb-1"
-                />
-              )}
+          {messages.length === 0 && (
+            <View className="items-center pt-10">
+              <Text className="text-[15px] text-[#8E8E93]" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>
+                No messages yet. Say hello!
+              </Text>
             </View>
-          ))}
+          )}
         </ScrollView>
 
         {/* Input Area */}
@@ -144,7 +172,7 @@ export default function ChatDetailScreen() {
             />
             <TouchableOpacity
               className={`w-9 h-9 rounded-full items-center justify-center mb-1 ${inputText.trim() ? 'bg-[#1B1C62]' : 'bg-[#E5E5EA]'}`}
-              onPress={sendMessage}
+              onPress={handleSendMessage}
               disabled={!inputText.trim()}
             >
               <Ionicons name="arrow-up" size={20} color="white" />
@@ -176,34 +204,42 @@ export default function ChatDetailScreen() {
                 </TouchableOpacity>
               </View>
 
-              <Text className="text-[13px] text-[#8E8E93] uppercase mb-3 font-medium" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>Members ({MOCK_GROUP_MEMBERS.length})</Text>
+              <Text className="text-[13px] text-[#8E8E93] uppercase mb-3 font-medium" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>
+                Members ({members.length})
+              </Text>
 
               <ScrollView showsVerticalScrollIndicator={false}>
-                {MOCK_GROUP_MEMBERS.map((member) => (
-                  <TouchableOpacity
-                    key={member.id}
-                    className="flex-row items-center py-3 border-b border-[#F2F2F7]"
-                    onPress={() => {
-                      if (member.name !== 'You') {
-                        closeGroupInfo();
-                        router.push(`/profile/view/${member.id}` as any);
-                      }
-                    }}
-                    disabled={member.name === 'You'}
-                  >
-                    <Image source={{ uri: member.avatar }} className="w-11 h-11 rounded-full bg-gray-200" />
-                    <View className="flex-1 ml-3 justify-center">
-                      <Text className="text-[15px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
-                        {member.name}
-                        {member.name === 'You' && <Text className="text-[#8E8E93] font-normal"> (you)</Text>}
-                      </Text>
-                      <Text className="text-[13px] text-[#8E8E93] mt-0.5" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>{member.role}</Text>
-                    </View>
-                    {member.name !== 'You' && (
-                      <Ionicons name="chevron-forward" size={16} color="#C7C7CC" />
-                    )}
-                  </TouchableOpacity>
-                ))}
+                {members.map((member) => {
+                  const isYou = member.uid === user?.uid;
+                  return (
+                    <TouchableOpacity
+                      key={member.uid}
+                      className="flex-row items-center py-3 border-b border-[#F2F2F7]"
+                      onPress={() => {
+                        if (!isYou) {
+                          closeGroupInfo();
+                          router.push(`/profile/view/${member.uid}` as any);
+                        }
+                      }}
+                      disabled={isYou}
+                    >
+                      <Image
+                        source={member.profilePhoto ? { uri: member.profilePhoto } : DEFAULT_AVATAR}
+                        className="w-11 h-11 rounded-full bg-gray-200"
+                      />
+                      <View className="flex-1 ml-3 justify-center">
+                        <Text className="text-[15px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
+                          {member.displayName}
+                          {isYou && <Text className="text-[#8E8E93] font-normal"> (you)</Text>}
+                        </Text>
+                        <Text className="text-[13px] text-[#8E8E93] mt-0.5" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>
+                          {member.programme || member.role}
+                        </Text>
+                      </View>
+                      {!isYou && <Ionicons name="chevron-forward" size={16} color="#C7C7CC" />}
+                    </TouchableOpacity>
+                  );
+                })}
               </ScrollView>
 
               <TouchableOpacity

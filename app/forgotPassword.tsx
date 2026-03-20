@@ -1,18 +1,35 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
+import { useAuth } from '@/context/authContext';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
+  const { resetPassword } = useAuth();
   const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleReset = async () => {
+    if (!email.trim()) return;
+    setLoading(true);
+    const result = await resetPassword(email.trim());
+    setLoading(false);
+    if (result.success) {
+      Alert.alert('Reset Link Sent', 'Check your email for a password reset link.', [
+        { text: 'OK', onPress: () => router.back() },
+      ]);
+    } else {
+      Alert.alert('Error', result.error || 'Failed to send reset link.');
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar style="dark" />
-      
+
       {/* Header */}
       <View className="px-5 pt-4 pb-2">
         <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 justify-center -ml-2">
@@ -20,7 +37,7 @@ export default function ForgotPasswordScreen() {
         </TouchableOpacity>
       </View>
 
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1 px-8 pt-8"
       >
@@ -47,28 +64,27 @@ export default function ForgotPasswordScreen() {
         </View>
 
         {/* Action Button */}
-        <TouchableOpacity 
+        <TouchableOpacity
           className="w-full h-14 rounded-full items-center justify-center"
-          style={{ 
+          style={{
             backgroundColor: email.trim() ? '#1B1C62' : '#E5E5EA',
-            shadowColor: email.trim() ? '#1e3a8a' : 'transparent', 
-            shadowOffset: { width: 0, height: 4 }, 
-            shadowOpacity: 0.2, 
-            shadowRadius: 6, 
-            elevation: email.trim() ? 4 : 0 
+            shadowColor: email.trim() ? '#1e3a8a' : 'transparent',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.2,
+            shadowRadius: 6,
+            elevation: email.trim() ? 4 : 0
           }}
-          disabled={!email.trim()}
-          onPress={() => {
-            // Placeholder: Firebase trigger would happen here.
-            alert("Reset link sent!");
-            router.back();
-          }}
+          disabled={!email.trim() || loading}
+          onPress={handleReset}
         >
-          <Text className={`text-[16px] font-bold ${email.trim() ? 'text-white' : 'text-[#8E8E93]'}`} style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
-            Send Reset Link
-          </Text>
+          {loading ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text className={`text-[16px] font-bold ${email.trim() ? 'text-white' : 'text-[#8E8E93]'}`} style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
+              Send Reset Link
+            </Text>
+          )}
         </TouchableOpacity>
-
 
       </KeyboardAvoidingView>
     </SafeAreaView>
