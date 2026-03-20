@@ -2,8 +2,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
-import { Linking, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Linking, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ScreenHeader } from '@/components/navigation/ScreenHeader';
+import { PrimaryButton } from '@/components/ui/PrimaryButton';
+import { SearchBar } from '@/components/ui/SearchBar';
+import { SectionLabel } from '@/components/ui/SectionLabel';
 
 const FAQ_ITEMS = [
   { question: 'How to create an event?', answer: 'Navigate to the Events tab and tap the + icon in the top right corner. Fill in the event details and submit it for admin approval.' },
@@ -18,127 +22,75 @@ export default function HelpSupportScreen() {
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
   const [showGuidelines, setShowGuidelines] = useState(false);
 
-  const filteredFaqs = FAQ_ITEMS.filter(item =>
-    item.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.answer.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredFaqs = FAQ_ITEMS.filter((item) =>
+    item.question.toLowerCase().includes(searchQuery.toLowerCase()) || item.answer.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  const handleReportIssue = () => {
-    Linking.openURL('mailto:support@mscircle.com?subject=Report%20an%20Issue');
-  };
-
-  const handleContactUs = () => {
-    Linking.openURL('mailto:contact@mscircle.com?subject=Contact%20MSCircle%20Support');
-  };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar style="dark" />
-
-      {/* Header */}
-      <View className="flex-row items-center justify-between px-4 py-3 bg-white z-10 border-b border-[#E5E5EA]">
-        <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 items-center justify-center -ml-2">
-          <Ionicons name="chevron-back" size={28} color="#1B1C62" />
-        </TouchableOpacity>
-        <Text className="text-[18px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
-          Help & Support
-        </Text>
-        <View className="w-10" />
-      </View>
+      <ScreenHeader title="Help & Support" onLeftPress={() => router.back()} showBorder />
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Search Bar */}
-        <View className="px-5 pt-6 pb-4">
-          <View className="flex-row items-center bg-[#F6F6F6] rounded-xl px-4 py-3">
-            <Ionicons name="search" size={20} color="#8E8E93" />
-            <TextInput
-              className="flex-1 ml-3 text-black"
-              style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 16 }}
-              placeholder="Search for help..."
-              placeholderTextColor="#8E8E93"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-          </View>
+        <View className="px-5 pb-4 pt-6">
+          <SearchBar value={searchQuery} onChangeText={setSearchQuery} placeholder="Search for help..." />
         </View>
 
-        {/* Quick Links Grouped List */}
-        <View className="px-5 mb-8">
-          <Text className="text-[14px] text-[#8E8E93] uppercase mb-2 font-medium" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>FAQs</Text>
-          <View className="bg-white border-t border-[#E5E5EA]">
+        <View className="mb-8 px-5">
+          <SectionLabel label="FAQs" className="mb-2" />
+          <View className="border-t border-border-default bg-white">
             {filteredFaqs.map((item, index) => (
-              <View key={index} className="border-b border-[#E5E5EA]">
-                <TouchableOpacity
-                  className="flex-row items-center justify-between py-4"
-                  onPress={() => setExpandedFaq(expandedFaq === index ? null : index)}
-                >
-                  <Text className="text-[16px] text-black pr-4 flex-1" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{item.question}</Text>
-                  <Ionicons name={expandedFaq === index ? "chevron-up" : "chevron-down"} size={18} color="#C7C7CC" />
+              <View key={index} className="border-b border-border-default">
+                <TouchableOpacity className="flex-row items-center justify-between py-4" onPress={() => setExpandedFaq(expandedFaq === index ? null : index)}>
+                  <Text className="flex-1 pr-4 text-[16px] text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{item.question}</Text>
+                  <Ionicons name={expandedFaq === index ? 'chevron-up' : 'chevron-down'} size={18} color="#C7C7CC" />
                 </TouchableOpacity>
-                {expandedFaq === index && (
+                {expandedFaq === index ? (
                   <View className="pb-4 pr-4">
-                    <Text className="text-[14px] text-[#666666] leading-5" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>{item.answer}</Text>
+                    <Text className="text-[14px] leading-5 text-text-secondary" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>{item.answer}</Text>
                   </View>
-                )}
+                ) : null}
               </View>
             ))}
           </View>
         </View>
 
-        <View className="px-5 mb-12">
-          <Text className="text-[14px] text-[#8E8E93] uppercase mb-2 font-medium" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>Other Resources</Text>
-          <View className="bg-white border border-[#E5E5EA] rounded-xl overflow-hidden">
-            <TouchableOpacity
-              className="flex-row items-center justify-between p-4"
-              onPress={() => setShowGuidelines(true)}
-            >
-              <Text className="text-[16px] text-black font-medium" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>Community Guidelines</Text>
+        <View className="mb-12 px-5">
+          <SectionLabel label="Other Resources" className="mb-2" />
+          <View className="overflow-hidden rounded-xl border border-border-default bg-white">
+            <TouchableOpacity className="flex-row items-center justify-between p-4" onPress={() => setShowGuidelines(true)}>
+              <Text className="text-[16px] text-black" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>Community Guidelines</Text>
               <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Contact Us Section */}
-        <View className="px-5 pb-20 items-center">
-          <Text className="text-[17px] font-bold text-black mb-1" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Still need help?</Text>
-          <Text className="text-[14px] text-[#8E8E93] text-center mb-5" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>We're here to assist you anytime.</Text>
-          <TouchableOpacity
-            className="w-full bg-[#1B1C62] py-4 rounded-xl items-center justify-center flex-row"
-            onPress={handleContactUs}
-          >
-            <Ionicons name="mail" size={20} color="white" />
-            <Text className="text-white text-[16px] font-bold ml-2" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Contact Us</Text>
-          </TouchableOpacity>
+        <View className="items-center px-5 pb-20">
+          <Text className="mb-1 text-[17px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Still need help?</Text>
+          <Text className="mb-5 text-center text-[14px] text-text-muted" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>We&apos;re here to assist you anytime.</Text>
+          <PrimaryButton label="Contact Us" onPress={() => Linking.openURL('mailto:contact@mscircle.com?subject=Contact%20MSCircle%20Support')} />
         </View>
-
       </ScrollView>
 
-      {/* Guidelines Modal */}
       <Modal visible={showGuidelines} animationType="slide" presentationStyle="pageSheet">
         <View className="flex-1 bg-white">
-          <View className="flex-row justify-between items-center px-5 py-4 mt-4 border-b border-[#E5E5EA]">
-            <Text className="text-[20px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Community Guidelines</Text>
-            <TouchableOpacity onPress={() => setShowGuidelines(false)} className="w-10 h-10 items-end justify-center">
-              <Ionicons name="close" size={28} color="#8E8E93" />
-            </TouchableOpacity>
-          </View>
+          <ScreenHeader title="Community Guidelines" rightIconName="close" onRightPress={() => setShowGuidelines(false)} showBorder className="mt-4 px-5" />
           <ScrollView className="px-5 py-6" showsVerticalScrollIndicator={false}>
-            <Text className="text-[16px] text-black leading-6 mb-4" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>
+            <Text className="mb-4 text-[16px] leading-6 text-black" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>
               1. Be respectful to all members. Harassment, hate speech, or discrimination will not be tolerated.
             </Text>
-            <Text className="text-[16px] text-black leading-6 mb-4" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>
+            <Text className="mb-4 text-[16px] leading-6 text-black" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>
               2. Keep content relevant to NTU EEE academics, careers, and networking.
             </Text>
-            <Text className="text-[16px] text-black leading-6 mb-4" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>
+            <Text className="mb-4 text-[16px] leading-6 text-black" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>
               3. Do not spam chat channels with unsolicited promotions or irrelevant links.
             </Text>
-            <Text className="text-[16px] text-black leading-6 mb-12" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>
+            <Text className="mb-12 text-[16px] leading-6 text-black" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>
               4. Admins reserve the right to suspend accounts violating these guidelines.
             </Text>
           </ScrollView>
         </View>
       </Modal>
-
     </SafeAreaView>
   );
 }

@@ -1,14 +1,15 @@
-import { Link, useRouter } from 'expo-router'
+import { Link } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import React, { useState } from 'react'
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native'
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native'
+import { widthPercentageToDP as wp } from 'react-native-responsive-screen'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import NTULogo from '../assets/images/NTULogo.svg'
+import { PrimaryButton } from '@/components/ui/PrimaryButton'
+import { TextField } from '@/components/ui/TextField'
 import { useAuth } from '@/context/authContext'
 
-export default function logIn() {
-  const router = useRouter();
+export default function LogIn() {
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,123 +26,61 @@ export default function logIn() {
     if (!result.success) {
       Alert.alert('Login Failed', result.error);
     }
-    // on success, onAuthStateChanged will set isAuthenticated → _layout redirects
   };
 
   return (
     <View className="flex-1 bg-white">
       <StatusBar style="dark" />
       <SafeAreaView className="flex-1">
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          className="flex-1"
-        >
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{flexGrow: 1}}
-            keyboardShouldPersistTaps="handled"
-          >
-            <View style={{paddingHorizontal: wp(6)}} className="flex-1 items-center justify-start pt-24">
-              <View style={{width: '100%', maxWidth: 420}} className="gap-4">
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+            <View style={{ paddingHorizontal: wp(6) }} className="flex-1 items-center justify-start pt-24">
+              <View style={{ width: '100%', maxWidth: 420 }} className="gap-6">
                 <View className="items-center">
-                  <NTULogo width={wp(70)} height={hp(18)} />
+                  <NTULogo width={wp(70)} height={140} />
                 </View>
 
-                <View className="gap-6">
-                  <View className="gap-4">
-                    <View className="gap-1">
-                      <Text style={{fontSize: hp(2)}} className="text-neutral-700">
-                        Email Address
-                      </Text>
-                      <View
-                        style={{
-                          height: hp(6),
-                          shadowColor: '#000',
-                          shadowOpacity: 0.04,
-                          shadowOffset: {width: 0, height: 3},
-                          shadowRadius: 6,
-                          elevation: 2,
-                        }}
-                        className="flex-row items-center rounded-xl bg-white px-4 border border-neutral-300"
-                      >
-                        <TextInput
-                          style={{fontSize: hp(2)}}
-                          className="flex-1 text-neutral-900"
-                          placeholder="username@e.ntu.edu.sg"
-                          placeholderTextColor="#94a3b8"
-                          keyboardType="email-address"
-                          autoCapitalize="none"
-                          value={email}
-                          onChangeText={setEmail}
-                        />
-                      </View>
-                    </View>
+                <View className="gap-4">
+                  <TextField
+                    label="Email Address"
+                    placeholder="username@e.ntu.edu.sg"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    value={email}
+                    onChangeText={setEmail}
+                  />
+                  <TextField
+                    label="Password"
+                    placeholder={'\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022'}
+                    secureTextEntry
+                    value={password}
+                    onChangeText={setPassword}
+                  />
+                </View>
 
-                    <View className="gap-1">
-                      <Text style={{fontSize: hp(2)}} className="text-neutral-700">
-                        Password
-                      </Text>
-                      <View
-                        style={{
-                          height: hp(6),
-                          shadowColor: '#000',
-                          shadowOpacity: 0.04,
-                          shadowOffset: {width: 0, height: 3},
-                          shadowRadius: 6,
-                          elevation: 2,
-                        }}
-                        className="flex-row items-center rounded-xl bg-white px-4 border border-neutral-300"
-                      >
-                        <TextInput
-                          style={{fontSize: hp(2)}}
-                          className="flex-1 text-neutral-900"
-                          placeholder={'\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022'}
-                          placeholderTextColor="#94a3b8"
-                          secureTextEntry
-                          value={password}
-                          onChangeText={setPassword}
-                        />
-                      </View>
-                    </View>
-                  </View>
+                <PrimaryButton label="Log In" onPress={handleLogin} loading={loading} />
 
-                  <Pressable
-                    style={{height: hp(6)}}
-                    className="h-12 items-center justify-center rounded-xl bg-[#121C5D]"
-                    onPress={handleLogin}
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <ActivityIndicator color="white" />
-                    ) : (
-                      <Text style={{fontSize: hp(2.1)}} className="text-white font-semibold">
-                        Log In
-                      </Text>
-                    )}
-                  </Pressable>
-
-                  <View className="items-center gap-3 pb-8">
-                    <View className="flex-row items-center gap-1">
-                      <Text style={{fontSize: hp(1.6)}} className="text-neutral-600">
-                        Don&apos;t have an account?
-                      </Text>
-                      <Link href="/signUp" asChild>
-                        <Pressable hitSlop={8}>
-                          <Text style={{fontSize: hp(1.6)}} className="text-[#121C5D] font-semibold">
-                            Sign Up
-                          </Text>
-                        </Pressable>
-                      </Link>
-                    </View>
-
-                    <Link href="/forgotPassword" asChild>
+                <View className="items-center gap-3 pb-8">
+                  <View className="flex-row items-center gap-1">
+                    <Text className="text-[14px] text-text-secondary" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>
+                      Don&apos;t have an account?
+                    </Text>
+                    <Link href="/signUp" asChild>
                       <Pressable hitSlop={8}>
-                        <Text style={{fontSize: hp(1.6)}} className="text-[#121C5D] font-semibold">
-                          Forgot Password?
+                        <Text className="text-[14px] font-semibold text-ntu-primary" style={{ fontFamily: 'PlusJakartaSans-SemiBold' }}>
+                          Sign Up
                         </Text>
                       </Pressable>
                     </Link>
                   </View>
+
+                  <Link href="/forgotPassword" asChild>
+                    <Pressable hitSlop={8}>
+                      <Text className="text-[14px] font-semibold text-ntu-primary" style={{ fontFamily: 'PlusJakartaSans-SemiBold' }}>
+                        Forgot Password?
+                      </Text>
+                    </Pressable>
+                  </Link>
                 </View>
               </View>
             </View>

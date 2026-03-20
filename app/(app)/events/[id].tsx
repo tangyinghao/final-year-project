@@ -1,14 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView, Modal, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
+import { Avatar } from '@/components/ui/Avatar';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { DangerOutlineButton } from '@/components/ui/DangerOutlineButton';
+import { PrimaryButton } from '@/components/ui/PrimaryButton';
+import { ScreenHeader } from '@/components/navigation/ScreenHeader';
+import { EventMetaRow } from '@/components/events/EventMetaRow';
 import { useAuth } from '@/context/authContext';
 import { getEvent, joinEvent, leaveEvent } from '@/services/eventService';
 import { getUsersByIds } from '@/services/userService';
 import { AppEvent, UserProfile } from '@/types';
-import { DEFAULT_AVATAR } from '@/constants/images';
+import { Theme } from '@/constants/theme';
 
 export default function EventDetailScreen() {
   const router = useRouter();
@@ -58,11 +64,7 @@ export default function EventDetailScreen() {
     setLeaving(true);
     await leaveEvent(eventId, user.uid);
     setHasJoined(false);
-    setEvent({
-      ...event,
-      attendeeCount: Math.max(0, event.attendeeCount - 1),
-      attendees: event.attendees.filter((uid) => uid !== user.uid),
-    });
+    setEvent({ ...event, attendeeCount: Math.max(0, event.attendeeCount - 1), attendees: event.attendees.filter((uid) => uid !== user.uid) });
     setAttendeeProfiles(attendeeProfiles.filter((p) => p.uid !== user.uid));
     setLeaving(false);
     setShowLeaveDialog(false);
@@ -70,8 +72,8 @@ export default function EventDetailScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-white items-center justify-center">
-        <ActivityIndicator color="#1B1C62" />
+      <SafeAreaView className="flex-1 items-center justify-center bg-white">
+        <ActivityIndicator color={Theme.colors.brand.primary} />
       </SafeAreaView>
     );
   }
@@ -83,77 +85,57 @@ export default function EventDetailScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar style="dark" />
-
-      <View className="flex-row items-center justify-between px-4 py-3 bg-white z-10 border-b border-[#E5E5EA]">
-        <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 items-center justify-center -ml-2">
-          <Ionicons name="chevron-back" size={28} color="#1B1C62" />
-        </TouchableOpacity>
-        <Text className="text-[18px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Event Detail</Text>
-        <View className="w-10" />
-      </View>
+      <ScreenHeader title="Event Detail" onLeftPress={() => router.back()} showBorder />
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="w-full h-56 bg-blue-100 flex items-center justify-center relative overflow-hidden">
+        <View className="relative h-56 w-full items-center justify-center overflow-hidden bg-blue-100">
           {event?.coverImage ? (
-            <Image source={{ uri: event.coverImage }} className="w-full h-full" resizeMode="cover" />
+            <Image source={{ uri: event.coverImage }} className="h-full w-full" resizeMode="cover" />
           ) : (
             <>
-              <Ionicons name="image-outline" size={48} color="#90cdf4" />
-              <Text className="text-[#3182ce] mt-2 font-medium" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>Event Image</Text>
+              <Ionicons name="image-outline" size={48} color={Theme.colors.border.info} />
+              <Text className="mt-2 text-ntu-primary" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>Event Image</Text>
             </>
           )}
         </View>
 
-        <View className="px-5 pt-6 pb-4">
-          <Text className="text-[26px] font-bold text-black mb-4 leading-8" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
+        <View className="px-5 pb-4 pt-6">
+          <Text className="mb-4 text-[26px] font-bold leading-8 text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
             {event?.title}
           </Text>
 
-          <View className="flex-row items-center mb-3">
-            <View className="w-8 items-center"><Ionicons name="calendar" size={20} color="#8E8E93" /></View>
-            <Text className="text-[15px] text-[#333333] ml-2" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>{dateStr} {timeStr && `\u2022 ${timeStr}`}</Text>
-          </View>
+          <EventMetaRow iconName="calendar" label={`${dateStr}${timeStr ? ` • ${timeStr}` : ''}`} />
+          <EventMetaRow iconName="location" label={event?.location || ''} />
 
-          <View className="flex-row items-center mb-4">
-            <View className="w-8 items-center"><Ionicons name="location" size={20} color="#8E8E93" /></View>
-            <Text className="text-[15px] text-[#333333] ml-2" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>{event?.location}</Text>
-          </View>
-
-          <View className="flex-row items-center mb-6 py-3 border-y border-[#E5E5EA]">
-            <Image
-              source={creatorProfile?.profilePhoto ? { uri: creatorProfile.profilePhoto } : DEFAULT_AVATAR}
-              className="w-10 h-10 rounded-full"
-            />
+          <View className="mb-6 flex-row items-center border-y border-border-default py-3">
+            <Avatar uri={creatorProfile?.profilePhoto} size={40} />
             <View className="ml-3">
-              <Text className="text-[13px] text-[#8E8E93]" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>Organized by</Text>
+              <Text className="text-[13px] text-text-muted" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>Organized by</Text>
               <Text className="text-[15px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
                 {event?.creatorName || creatorProfile?.displayName || 'Organizer'}
               </Text>
             </View>
           </View>
 
-          <Text className="text-[17px] font-bold text-black mb-2" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>About the Event</Text>
-          <Text className="text-[15px] text-[#666666] leading-6 mb-8" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>
+          <Text className="mb-2 text-[17px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>About the Event</Text>
+          <Text className="mb-8 text-[15px] leading-6 text-text-secondary" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>
             {event?.description}
           </Text>
 
-          <View className="flex-row justify-between items-end mb-4">
+          <View className="mb-4 flex-row items-end justify-between">
             <Text className="text-[17px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
               Attendees ({event?.attendeeCount || 0}{event?.maxCapacity ? `/${event.maxCapacity}` : ''})
             </Text>
             <TouchableOpacity onPress={() => router.push({ pathname: '/events/attendees', params: { id: eventId } } as any)}>
-              <Text className="text-[14px] text-[#1B1C62] font-bold" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>View All</Text>
+              <Text className="text-[14px] font-bold text-ntu-primary" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>View All</Text>
             </TouchableOpacity>
           </View>
 
           <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-8">
             {attendeeProfiles.slice(0, 8).map((profile) => (
-              <TouchableOpacity key={profile.uid} onPress={() => router.push(`/profile/view/${profile.uid}` as any)} className="items-center mr-3">
-                <Image
-                  source={profile.profilePhoto ? { uri: profile.profilePhoto } : DEFAULT_AVATAR}
-                  className="w-12 h-12 rounded-full border border-[#E5E5EA] bg-gray-200"
-                />
-                <Text className="text-[11px] text-[#8E8E93] mt-1 max-w-[50px] text-center" numberOfLines={1} style={{ fontFamily: 'PlusJakartaSans-Regular' }}>
+              <TouchableOpacity key={profile.uid} onPress={() => router.push(`/profile/view/${profile.uid}` as any)} className="mr-3 items-center">
+                <Avatar uri={profile.profilePhoto} size={48} className="border border-border-default" />
+                <Text className="mt-1 max-w-[50px] text-center text-[11px] text-text-muted" numberOfLines={1} style={{ fontFamily: 'PlusJakartaSans-Regular' }}>
                   {profile.displayName.split(' ')[0]}
                 </Text>
               </TouchableOpacity>
@@ -162,78 +144,37 @@ export default function EventDetailScreen() {
         </View>
       </ScrollView>
 
-      {/* Fixed Bottom Bar */}
-      <View className="px-5 py-4 pb-8 bg-white border-t border-[#E5E5EA] shadow-xl">
+      <View className="border-t border-border-default bg-white px-5 pb-8 pt-4">
         {hasJoined ? (
-          <TouchableOpacity
-            className="w-full py-4 rounded-xl items-center justify-center bg-[#D71440]"
-            onPress={() => setShowLeaveDialog(true)}
-          >
-            <Text className="text-white text-[16px] font-bold" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
-              Leave Event
-            </Text>
-          </TouchableOpacity>
+          <DangerOutlineButton label="Leave Event" onPress={() => setShowLeaveDialog(true)} />
         ) : (
-          <TouchableOpacity
-            className="w-full py-4 rounded-xl items-center justify-center bg-[#1B1C62]"
-            onPress={() => setShowJoinDialog(true)}
-          >
-            <Text className="text-white text-[16px] font-bold" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
-              Join Event
-            </Text>
-          </TouchableOpacity>
+          <PrimaryButton label="Join Event" onPress={() => setShowJoinDialog(true)} />
         )}
       </View>
 
-      {/* Join Event Dialog */}
-      <Modal visible={showJoinDialog} transparent animationType="fade">
-        <View className="flex-1 bg-black/50 justify-center items-center px-6">
-          <View className="bg-white w-full rounded-2xl p-6 items-center">
-            <View className="w-16 h-16 bg-blue-50 rounded-full items-center justify-center mb-4">
-              <Ionicons name="calendar-outline" size={32} color="#1B1C62" />
-            </View>
-            <Text className="text-[20px] font-bold text-black mb-2 text-center" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Join Event?</Text>
-            <Text className="text-[15px] text-[#8E8E93] text-center mb-6 leading-6" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>
-              You are about to join {event?.title}. The organizer will be notified.
-            </Text>
-            <View className="flex-row w-full gap-3">
-              <TouchableOpacity className="flex-1 py-3.5 rounded-xl border border-[#E5E5EA] items-center justify-center" onPress={() => setShowJoinDialog(false)}>
-                <Text className="text-[16px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity className="flex-1 py-3.5 rounded-xl bg-[#1B1C62] items-center justify-center" onPress={handleJoin} disabled={joining}>
-                {joining ? <ActivityIndicator color="white" /> : (
-                  <Text className="text-[16px] font-bold text-white" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Confirm</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <ConfirmModal
+        visible={showJoinDialog}
+        title="Join Event?"
+        message={`You are about to join ${event?.title}. The organizer will be notified.`}
+        iconName="calendar-outline"
+        tone="primary"
+        confirmLabel="Confirm"
+        onConfirm={handleJoin}
+        onCancel={() => setShowJoinDialog(false)}
+        loading={joining}
+      />
 
-      {/* Leave Event Dialog */}
-      <Modal visible={showLeaveDialog} transparent animationType="fade">
-        <View className="flex-1 bg-black/50 justify-center items-center px-6">
-          <View className="bg-white w-full rounded-2xl p-6 items-center">
-            <View className="w-16 h-16 bg-red-50 rounded-full items-center justify-center mb-4">
-              <Ionicons name="exit-outline" size={32} color="#D71440" />
-            </View>
-            <Text className="text-[20px] font-bold text-black mb-2 text-center" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Leave Event?</Text>
-            <Text className="text-[15px] text-[#8E8E93] text-center mb-6 leading-6" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>
-              Are you sure you want to leave {event?.title}? You can rejoin later.
-            </Text>
-            <View className="flex-row w-full gap-3">
-              <TouchableOpacity className="flex-1 py-3.5 rounded-xl border border-[#E5E5EA] items-center justify-center" onPress={() => setShowLeaveDialog(false)}>
-                <Text className="text-[16px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity className="flex-1 py-3.5 rounded-xl bg-[#D71440] items-center justify-center" onPress={handleLeave} disabled={leaving}>
-                {leaving ? <ActivityIndicator color="white" /> : (
-                  <Text className="text-[16px] font-bold text-white" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Leave</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <ConfirmModal
+        visible={showLeaveDialog}
+        title="Leave Event?"
+        message={`Are you sure you want to leave ${event?.title}? You can rejoin later.`}
+        iconName="exit-outline"
+        tone="danger"
+        confirmLabel="Leave"
+        onConfirm={handleLeave}
+        onCancel={() => setShowLeaveDialog(false)}
+        loading={leaving}
+      />
     </SafeAreaView>
   );
 }
