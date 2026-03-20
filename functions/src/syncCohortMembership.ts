@@ -2,8 +2,12 @@ import { firestore } from 'firebase-functions/v2';
 import * as admin from 'firebase-admin';
 
 /**
- * Keeps alumni cohort membership and cohort chat provisioning in sync.
+ * Keeps cohort membership and cohort chat provisioning in sync.
  * Runs on any write to users/{uid}. Idempotent.
+ *
+ * - All users (student + alumni) with a graduationYear get added to cohorts.
+ * - When a user changes their graduationYear, they are added to the new cohort
+ *   but remain in their previous cohort chat (they are NOT removed).
  */
 export const syncCohortMembership = firestore.onDocumentWritten(
   'users/{uid}',
@@ -13,11 +17,10 @@ export const syncCohortMembership = firestore.onDocumentWritten(
 
     const db = admin.firestore();
     const uid = event.params.uid;
-    const role = after.role;
     const graduationYear = after.graduationYear;
 
-    // Only process alumni with a graduation year
-    if (role !== 'alumni' || !graduationYear) return;
+    // Only process users with a graduation year
+    if (!graduationYear) return;
 
     const cohortRef = db.collection('cohorts').doc(String(graduationYear));
 
@@ -35,6 +38,7 @@ export const syncCohortMembership = firestore.onDocumentWritten(
           matchType: 'manual',
           cohortYear: graduationYear,
           lastMessage: null,
+          unreadCount: {},
           createdAt: admin.firestore.FieldValue.serverTimestamp(),
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         });
