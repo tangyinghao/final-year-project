@@ -1,0 +1,86 @@
+import { useState, useEffect } from 'react';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from './lib/firebase';
+import { Layout } from './components/Layout';
+import { Login } from './pages/Login';
+import { Dashboard } from './pages/Dashboard';
+import { Review } from './pages/Review';
+import { Reports } from './pages/Reports';
+import { Users } from './pages/Users';
+import { CreateEventModal } from './components/CreateEventModal';
+
+type Tab = 'Dashboard' | 'Review' | 'Reports' | 'Users';
+
+function App() {
+  const [adminUid, setAdminUid] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<Tab>('Dashboard');
+  const [showCreateEvent, setShowCreateEvent] = useState(false);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // Verify admin role from Firestore
+        const snap = await getDoc(doc(db, 'users', user.uid));
+        const data = snap.data();
+        if (data?.role === 'admin') {
+          setAdminUid(user.uid);
+        } else {
+          await signOut(auth);
+          setAdminUid(null);
+        }
+      } else {
+        setAdminUid(null);
+      }
+      setLoading(false);
+    });
+    return unsub;
+  }, []);
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    setAdminUid(null);
+    setActiveTab('Dashboard');
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#f6f6f6] flex items-center justify-center">
+        <div className="text-[#8e8e93] text-lg">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!adminUid) {
+    return <Login />;
+  }
+
+  const renderPage = () => {
+    switch (activeTab) {
+      case 'Dashboard': return <Dashboard onNavigate={setActiveTab} />;
+      case 'Review': return <Review />;
+      case 'Reports': return <Reports />;
+      case 'Users': return <Users />;
+      default: return <Dashboard onNavigate={setActiveTab} />;
+    }
+  };
+
+  return (
+    <>
+      <Layout
+        activeTab={activeTab}
+        onNavigate={setActiveTab}
+        onLogout={handleLogout}
+        onCreateEvent={() => setShowCreateEvent(true)}
+      >
+        {renderPage()}
+      </Layout>
+      {showCreateEvent && (
+        <CreateEventModal onClose={() => setShowCreateEvent(false)} />
+      )}
+    </>
+  );
+}
+
+export default App;
