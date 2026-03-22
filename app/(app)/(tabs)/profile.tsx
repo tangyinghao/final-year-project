@@ -15,7 +15,6 @@ import { FEATURE_FLAGS } from '@/constants/featureFlags';
 import { Theme } from '@/constants/theme';
 
 const MENU_ITEMS = [
-  { icon: 'notifications-outline', title: 'Notifications', route: '/notifications' },
   { icon: 'help-circle-outline', title: 'Help & Support', route: '/profile/help' },
 ];
 
