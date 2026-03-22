@@ -147,6 +147,10 @@ export default function EventDetailScreen() {
       <View className="border-t border-border-default bg-white px-5 pb-8 pt-4">
         {hasJoined ? (
           <DangerOutlineButton label="Leave Event" onPress={() => setShowLeaveDialog(true)} />
+        ) : event?.maxCapacity && event.attendeeCount >= event.maxCapacity ? (
+          <View className="items-center rounded-xl bg-gray-200 py-3.5">
+            <Text className="text-[15px] font-bold text-gray-400" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Event Full</Text>
+          </View>
         ) : (
           <PrimaryButton label="Join Event" onPress={() => setShowJoinDialog(true)} />
         )}
