@@ -8,6 +8,7 @@ import { EventListCard } from '@/components/events/EventListCard';
 import { ScreenHeader } from '@/components/navigation/ScreenHeader';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { getApprovedOfficialEvents, getApprovedUserEvents } from '@/services/eventService';
+import { getUsersByIds } from '@/services/userService';
 import { AppEvent } from '@/types';
 import { Theme } from '@/constants/theme';
 
@@ -16,12 +17,22 @@ export default function EventsScreen() {
   const [officialEvents, setOfficialEvents] = useState<AppEvent[]>([]);
   const [userEvents, setUserEvents] = useState<AppEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [attendeePhotos, setAttendeePhotos] = useState<Record<string, string | null>>({});
 
   useEffect(() => {
     (async () => {
       const [official, userCreated] = await Promise.all([getApprovedOfficialEvents(), getApprovedUserEvents()]);
       setOfficialEvents(official);
       setUserEvents(userCreated);
+
+      const allUids = [...new Set([...official, ...userCreated].flatMap((e) => e.attendees || []))];
+      if (allUids.length > 0) {
+        const profiles = await getUsersByIds(allUids);
+        const photoMap: Record<string, string | null> = {};
+        profiles.forEach((p) => { photoMap[p.uid] = p.profilePhoto; });
+        setAttendeePhotos(photoMap);
+      }
+
       setLoading(false);
     })();
   }, []);
@@ -80,7 +91,7 @@ export default function EventsScreen() {
               title={item.title}
               description={item.description}
               timeLabel={formatEventTime(item)}
-              attendees={item.attendees.slice(0, 3).map((uid) => ({ id: uid }))}
+              attendees={(item.attendees || []).map((uid) => ({ id: uid, uri: attendeePhotos[uid] || null }))}
               onPress={() => router.push(`/events/${item.id}` as any)}
             />
           )}
