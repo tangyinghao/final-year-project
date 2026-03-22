@@ -3,14 +3,15 @@ import { Slot, useRouter, useSegments } from 'expo-router'
 import React, { useEffect, useRef } from 'react'
 import * as Notifications from 'expo-notifications'
 import { registerForPushNotificationsAsync, savePushToken } from '@/services/pushNotificationService'
+import { FEATURE_FLAGS } from '@/constants/featureFlags'
 import "../global.css"
 
 const MainLayout = () => {
     const { isAuthenticated, user } = useAuth();
     const segments = useSegments();
     const router = useRouter();
-    const notificationListener = useRef<Notifications.EventSubscription>();
-    const responseListener = useRef<Notifications.EventSubscription>();
+    const notificationListener = useRef<Notifications.EventSubscription | null>(null);
+    const responseListener = useRef<Notifications.EventSubscription | null>(null);
 
     useEffect(() => {
         // check if user is authenticated or not
@@ -27,6 +28,7 @@ const MainLayout = () => {
 
     // Register push token and set up notification listeners when authenticated
     useEffect(() => {
+        if (!FEATURE_FLAGS.notificationsEnabled) return;
         if (!isAuthenticated || !user?.uid) return;
 
         // Register push token if notifications are enabled
@@ -59,10 +61,10 @@ const MainLayout = () => {
 
         return () => {
             if (notificationListener.current) {
-                Notifications.removeNotificationSubscription(notificationListener.current);
+                notificationListener.current.remove();
             }
             if (responseListener.current) {
-                Notifications.removeNotificationSubscription(responseListener.current);
+                responseListener.current.remove();
             }
         };
     }, [isAuthenticated, user?.uid]);

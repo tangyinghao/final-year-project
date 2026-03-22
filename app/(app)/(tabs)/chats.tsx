@@ -11,6 +11,7 @@ import { SearchBar } from '@/components/ui/SearchBar';
 import { useAuth } from '@/context/authContext';
 import { subscribeToChats } from '@/services/chatService';
 import { getUsersByIds } from '@/services/userService';
+import { FEATURE_FLAGS } from '@/constants/featureFlags';
 import { Chat, UserProfile } from '@/types';
 
 export default function ChatsScreen() {
@@ -62,6 +63,7 @@ export default function ChatsScreen() {
   };
 
   useEffect(() => {
+    if (!FEATURE_FLAGS.notificationsEnabled) return;
     let total = 0;
     chats.forEach((chat) => {
       const count = (chat as any).unreadCount?.[user?.uid || ''] || 0;

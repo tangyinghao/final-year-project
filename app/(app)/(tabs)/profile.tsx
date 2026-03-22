@@ -11,6 +11,7 @@ import { SettingsRow } from '@/components/profile/SettingsRow';
 import { useAuth } from '@/context/authContext';
 import { registerForPushNotificationsAsync, savePushToken, removePushToken } from '@/services/pushNotificationService';
 import { updateUserProfile } from '@/services/userService';
+import { FEATURE_FLAGS } from '@/constants/featureFlags';
 import { Theme } from '@/constants/theme';
 
 const MENU_ITEMS = [
@@ -25,6 +26,7 @@ export default function ProfileScreen() {
   const [toggling, setToggling] = useState(false);
 
   useEffect(() => {
+    if (!FEATURE_FLAGS.notificationsEnabled) return;
     if (!user?.uid || !notifEnabled) return;
     (async () => {
       try {
@@ -40,6 +42,10 @@ export default function ProfileScreen() {
 
   const handleToggleNotifications = async (value: boolean) => {
     if (!user?.uid || toggling) return;
+    if (!FEATURE_FLAGS.notificationsEnabled) {
+      Alert.alert('Not Available', 'Notifications are temporarily disabled in this app build.');
+      return;
+    }
     setToggling(true);
     try {
       if (value) {

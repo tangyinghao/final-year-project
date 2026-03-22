@@ -4,6 +4,7 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/config/firebaseConfig';
+import { FEATURE_FLAGS } from '@/constants/featureFlags';
 
 // Configure how notifications appear when app is in foreground
 Notifications.setNotificationHandler({
@@ -17,6 +18,10 @@ Notifications.setNotificationHandler({
 });
 
 export async function registerForPushNotificationsAsync(): Promise<string | null> {
+  if (!FEATURE_FLAGS.notificationsEnabled) {
+    return null;
+  }
+
   if (!Device.isDevice) {
     console.log('Push notifications require a physical device');
     return null;
@@ -52,6 +57,10 @@ export async function registerForPushNotificationsAsync(): Promise<string | null
 
 // Save push token to user's Firestore doc
 export async function savePushToken(uid: string, token: string): Promise<void> {
+  if (!FEATURE_FLAGS.notificationsEnabled) {
+    return;
+  }
+
   await updateDoc(doc(db, 'users', uid), {
     expoPushToken: token,
   });
@@ -59,6 +68,10 @@ export async function savePushToken(uid: string, token: string): Promise<void> {
 
 // Remove push token (when user disables notifications)
 export async function removePushToken(uid: string): Promise<void> {
+  if (!FEATURE_FLAGS.notificationsEnabled) {
+    return;
+  }
+
   await updateDoc(doc(db, 'users', uid), {
     expoPushToken: null,
   });
