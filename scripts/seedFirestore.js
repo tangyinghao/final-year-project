@@ -2,8 +2,9 @@
  * Seed script — populates Firebase Auth + Firestore with test data.
  *
  * Prerequisites:
- *   npm install -g firebase-tools   (if not already)
- *   firebase login                   (if not already)
+ *   npm install -g firebase-tools
+ *   npm install firebase-admin --save-dev
+ *   firebase login
  *
  * Usage:
  *   node scripts/seedFirestore.js
@@ -25,7 +26,7 @@ const admin = require('firebase-admin');
 const path = require('path');
 
 // ─── Initialise with service account key ──
-const serviceAccount = require(path.join(__dirname, 'serviceAccountKey.json'));
+const serviceAccount = require(path.join(__dirname, '..', 'functions', 'serviceAccountKey.json'));
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   projectId: serviceAccount.project_id,
@@ -37,7 +38,7 @@ const FieldValue = admin.firestore.FieldValue;
 
 const PASSWORD = 'Test1234!';
 
-// ─── User definitions ─────────────────────────────────────────────────
+// Users
 const USERS = [
   // Admins
   { email: 'admin1@test.com', displayName: 'Dr. Sarah Wong', role: 'admin', programme: '', graduationYear: null, interests: [], bio: 'MSCircle system administrator and EEE faculty.', profilePhoto: 'https://i.pravatar.cc/300?u=admin1-mscircle' },
@@ -65,7 +66,7 @@ const USERS = [
   { email: 'victor@test.com', displayName: 'Victor Lim', role: 'alumni', programme: 'Computer Engineering', graduationYear: 2022, interests: ['Embedded Systems', 'RTOS', 'Firmware'], bio: 'Firmware engineer at Micron.', profilePhoto: 'https://i.pravatar.cc/300?u=victor-mscircle' },
 ];
 
-// ─── Helper: pick random subset ───────────────────────────────────────
+// Helper: pick random subset
 function pickRandom(arr, n) {
   const shuffled = [...arr].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, Math.min(n, arr.length));
@@ -75,7 +76,7 @@ function randomFrom(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-// ─── Auth helpers ─────────────────────────────────────────────────────
+// Auth helpers
 async function createOrGetUser(userData) {
   let uid;
   try {
@@ -130,11 +131,10 @@ async function deleteAuthUsers() {
   }
 }
 
-// ─── Seed ─────────────────────────────────────────────────────────────
 async function seed() {
   console.log('\n=== Seeding Firebase ===\n');
 
-  // ── 0. Clean slate ──────────────────────────────────────────────────
+  // 0. Clean slate
   console.log('0. Cleaning existing data...');
   await deleteCollection('notifications');
   await deleteCollection('reports');
@@ -146,7 +146,7 @@ async function seed() {
   await deleteAuthUsers();
   console.log('  Clean slate ready!\n');
 
-  // ── 1. Create users ─────────────────────────────────────────────────
+  // 1. Create users
   console.log('1. Creating users...');
   const uidMap = {};
   for (const u of USERS) {
@@ -186,7 +186,7 @@ async function seed() {
   // Helper to get display name from uid
   const nameOf = (uid) => USERS.find((u) => uidMap[u.email] === uid)?.displayName || 'Unknown';
 
-  // ── 2. Official events (4) ──────────────────────────────────────────
+  // 2. Official events (4)
   console.log('\n2. Creating official events...');
   const officialEvents = [
     { title: 'EEE Industry Night 2026', description: 'Annual networking event connecting EEE students with industry professionals. Guest speakers from Dyson, ST Engineering, and more.', date: new Date('2026-04-15T18:00:00'), location: 'LT1, NTU North Spine', coverImage: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=400&fit=crop', maxCapacity: 200 },
@@ -214,7 +214,7 @@ async function seed() {
     console.log(`  Official event: ${evt.title}`);
   }
 
-  // ── 3. User-created events (10) ─────────────────────────────────────
+  // 3. User-created events (10) 
   console.log('\n3. Creating user events...');
   const userEvents = [
     { title: 'Arduino Workshop for Beginners', description: 'Hands-on workshop to build your first IoT project with Arduino. All materials provided!', date: new Date('2026-04-20T14:00:00'), location: 'Hardware Lab 2, S2-B4a', maxCapacity: 30 },
@@ -251,7 +251,7 @@ async function seed() {
     console.log(`  User event: ${evt.title} (by ${creator.displayName})`);
   }
 
-  // ── 4. Jobs (10) ────────────────────────────────────────────────────
+  // 4. Jobs (10) 
   console.log('\n4. Creating jobs...');
   const SPECIALISATIONS = ['Communications', 'Computer Control', 'Electronics', 'Power Engineering', 'Signal Processing'];
   const jobListings = [
@@ -283,7 +283,7 @@ async function seed() {
     console.log(`  Job: ${job.title} at ${job.company}`);
   }
 
-  // ── 5. Mentorships (10) ─────────────────────────────────────────────
+  // 5. Mentorships (10) 
   console.log('\n5. Creating mentorships...');
   const mentorshipListings = [
     { title: 'Power Systems & Renewable Energy Mentor', expertise: ['Power Engineering'], availability: 'Weekends, 2 hours/week' },
@@ -320,7 +320,7 @@ async function seed() {
     console.log(`  Mentorship: ${ml.title} (${mentor.displayName})`);
   }
 
-  // ── 6. Group chats (2) ──────────────────────────────────────────────
+  // 6. Group chats (2)
   console.log('\n6. Creating group chats...');
 
   const groupChats = [
@@ -374,7 +374,7 @@ async function seed() {
     console.log(`  Group chat: ${gc.name} (${gc.participants.length} members, ${conv.length} messages)`);
   }
 
-  // ── 7. Direct chats (10 per non-admin user) ─────────────────────────
+  // 7. Direct chats (10 per non-admin user)
   console.log('\n7. Creating direct chats...');
 
   const directMessageTemplates = [
@@ -448,7 +448,7 @@ async function seed() {
   }
   console.log(`  Created ${directChatCount} direct chats with messages`);
 
-  // ── Done ────────────────────────────────────────────────────────────
+  // Completion Message
   console.log('\n=== Seed complete! ===');
   console.log(`\nTest accounts (password for all: ${PASSWORD}):`);
   for (const u of USERS) {
