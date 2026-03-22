@@ -42,6 +42,12 @@ export const suspendUser = https.onCall(async (request) => {
     throw new https.HttpsError('not-found', 'Target user not found.');
   }
 
+  // Cannot suspend another admin
+  const targetData = targetSnap.data();
+  if (targetData?.role === 'admin' && suspend) {
+    throw new https.HttpsError('permission-denied', 'Cannot suspend an admin user.');
+  }
+
   const newStatus = suspend ? 'suspended' : 'active';
 
   // Update Firestore status
