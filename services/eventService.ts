@@ -36,7 +36,7 @@ export async function getApprovedOfficialEvents(): Promise<AppEvent[]> {
     collection(db, 'events'),
     where('type', '==', 'official'),
     where('status', '==', 'approved'),
-    orderBy('date', 'desc')
+    orderBy('createdAt', 'desc')
   );
   const snap = await getDocs(q);
   return snap.docs.map((d) => ({ id: d.id, ...d.data() } as AppEvent));
