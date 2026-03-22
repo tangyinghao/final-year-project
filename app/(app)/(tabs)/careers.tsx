@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { CareerCard } from '@/components/careers/CareerCard';
 import { FilterChipRow } from '@/components/careers/FilterChipRow';
 import { SegmentedControl } from '@/components/careers/SegmentedControl';
@@ -13,13 +14,19 @@ import { getApprovedJobs, getApprovedMentorships } from '@/services/careerServic
 import { Job, Mentorship } from '@/types';
 import { Theme } from '@/constants/theme';
 
-const TAGS = ['All', 'Saved', 'Engineering', 'Data', 'Design', 'Marketing'];
+const TAGS = ['All', 'Saved', 'Communications', 'Computer Control', 'Electronics', 'Power Engineering', 'Signal Processing'];
 
 export default function CareersScreen() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('Jobs');
   const [activeTag, setActiveTag] = useState('All');
-  const { savedItems, toggleSave } = useSavedItems();
+  const { savedItems, toggleSave, refreshSaved } = useSavedItems();
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshSaved();
+    }, [refreshSaved])
+  );
   const [jobs, setJobs] = useState<Job[]>([]);
   const [mentorships, setMentorships] = useState<Mentorship[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +42,7 @@ export default function CareersScreen() {
 
   const currentData = activeTab === 'Jobs'
     ? jobs.map((j) => ({ id: j.id, title: j.title, company: j.company, location: j.location, poster: j.posterName, tags: j.tags }))
-    : mentorships.map((m) => ({ id: m.id, title: m.title, company: m.company, location: m.location, poster: m.mentorName, tags: m.tags }));
+    : mentorships.map((m) => ({ id: m.id, title: m.mentorName, company: m.title, location: m.location, poster: m.company, tags: m.expertise.length > 0 ? m.expertise : m.tags }));
 
   const filteredData = activeTag === 'Saved'
     ? currentData.filter((item) => savedItems.includes(item.id))
@@ -65,7 +72,10 @@ export default function CareersScreen() {
             <CareerCard
               title={item.title}
               company={item.company}
-              meta={`${item.location}${item.poster ? ` • Posted by ${item.poster}` : ''}`}
+              meta={activeTab === 'Mentorship'
+                ? `${item.poster || ''}${item.poster && item.location ? ' • ' : ''}${item.location}`
+                : `${item.location}${item.poster ? ` • Posted by ${item.poster}` : ''}`
+              }
               tags={item.tags}
               saved={savedItems.includes(item.id)}
               onToggleSave={() => toggleSave(item.id, activeTab === 'Mentorship' ? 'mentorship' : 'job')}

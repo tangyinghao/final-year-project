@@ -31,5 +31,5 @@ export function useSavedItems() {
 
   const isSaved = (id: string) => savedItems.includes(id);
 
-  return { savedItems, toggleSave, isSaved };
+  return { savedItems, toggleSave, isSaved, refreshSaved };
 }

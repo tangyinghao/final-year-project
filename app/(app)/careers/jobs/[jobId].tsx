@@ -154,7 +154,7 @@ export default function JobDetailScreen() {
         {/* CV Upload Section */}
         {!hasApplied && (
           <View className="bg-white mt-2 px-5 py-5 border-y border-[#E5E5EA]">
-            <Text className="text-[18px] font-bold text-black mb-3" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Attach CV (Optional)</Text>
+            <Text className="text-[18px] font-bold text-black mb-3" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Attach CV (Required)</Text>
             {cvFile ? (
               <View className="flex-row items-center bg-[#F6F6F6] rounded-xl py-3 px-4 border border-[#D0E6FC]">
                 <Ionicons name="document-outline" size={20} color="#1B1C62" />
@@ -203,7 +203,7 @@ export default function JobDetailScreen() {
             </View>
             <Text className="text-[20px] font-bold text-black mb-2 text-center" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Apply to {job.title}</Text>
             <Text className="text-[15px] text-[#8E8E93] text-center mb-5 leading-6" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>
-              Upload your CV to submit your application. The employer will be notified.
+              A CV is required to submit your application. The employer will be notified.
             </Text>
 
             {/* CV Upload */}
@@ -234,9 +234,9 @@ export default function JobDetailScreen() {
                 <Text className="text-[16px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                className="flex-1 py-3.5 rounded-xl items-center justify-center bg-[#1B1C62]"
+                className={`flex-1 py-3.5 rounded-xl items-center justify-center ${!cvFile ? 'bg-[#1B1C62]/40' : 'bg-[#1B1C62]'}`}
                 onPress={handleApply}
-                disabled={applying}
+                disabled={applying || !cvFile}
               >
                 {applying ? (
                   <View className="flex-row items-center">

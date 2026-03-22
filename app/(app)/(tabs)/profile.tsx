@@ -89,6 +89,7 @@ export default function ProfileScreen() {
               showDivider={true}
             />
           ))}
+          {/* Push Notifications toggle commented out — not supported in Expo Go
           <SettingsRow
             iconName="notifications"
             title="Push Notifications"
@@ -103,6 +104,7 @@ export default function ProfileScreen() {
             }
             showDivider={true}
           />
+          */}
           <SettingsRow iconName="information-circle-outline" title="About MSCircle" value="Version 1.0.0" />
         </View>
 

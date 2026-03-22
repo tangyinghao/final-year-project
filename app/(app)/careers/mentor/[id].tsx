@@ -5,6 +5,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useAuth } from '@/context/authContext';
+import { useSavedItems } from '@/hooks/useSavedItems';
 import { getMentorship, requestMentorship } from '@/services/careerService';
 import { getUsersByIds } from '@/services/userService';
 import { Mentorship, UserProfile } from '@/types';
@@ -15,6 +16,8 @@ export default function MentorDetailScreen() {
   const { user } = useAuth();
   const { id } = useLocalSearchParams();
   const mentorshipId = id as string;
+  const { isSaved, toggleSave } = useSavedItems();
+  const saved = isSaved(mentorshipId);
   const [mentorship, setMentorship] = useState<Mentorship | null>(null);
   const [mentorProfile, setMentorProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -75,7 +78,16 @@ export default function MentorDetailScreen() {
         <Text className="text-[18px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
           Mentor Profile
         </Text>
-        <View className="w-10" />
+        <TouchableOpacity
+          className="w-10 h-10 items-center justify-center"
+          onPress={() => toggleSave(mentorshipId, 'mentorship')}
+        >
+          <Ionicons
+            name={saved ? "bookmark" : "bookmark-outline"}
+            size={22}
+            color={saved ? "#FFD700" : "#1B1C62"}
+          />
+        </TouchableOpacity>
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
