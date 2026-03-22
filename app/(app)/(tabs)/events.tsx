@@ -57,7 +57,7 @@ export default function EventsScreen() {
         <ActivityIndicator style={{ marginTop: 40 }} color={Theme.colors.brand.primary} />
       ) : (
         <FlatList
-          data={userEvents}
+          data={userEvents.slice(0, 5)}
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={() => (
@@ -79,10 +79,19 @@ export default function EventsScreen() {
                 )}
               </ScrollView>
 
-              <View className="mb-3 px-4">
+              <View className="mb-3 px-4 flex-row items-center justify-between">
                 <Text className="text-[18px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
                   Latest Activities
                 </Text>
+                {userEvents.length > 5 && (
+                  <Text
+                    className="text-sm font-semibold"
+                    style={{ fontFamily: 'PlusJakartaSans-SemiBold', color: Theme.colors.brand.primary }}
+                    onPress={() => router.push('/events/all-activities' as any)}
+                  >
+                    See All
+                  </Text>
+                )}
               </View>
             </View>
           )}
