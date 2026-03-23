@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, ScrollView, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
@@ -18,24 +18,34 @@ export default function EventsScreen() {
   const [userEvents, setUserEvents] = useState<AppEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [attendeePhotos, setAttendeePhotos] = useState<Record<string, string | null>>({});
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchData = useCallback(async () => {
+    const [official, userCreated] = await Promise.all([getApprovedOfficialEvents(), getApprovedUserEvents()]);
+    setOfficialEvents(official);
+    setUserEvents(userCreated);
+
+    const allUids = [...new Set([...official, ...userCreated].flatMap((e) => e.attendees || []))];
+    if (allUids.length > 0) {
+      const profiles = await getUsersByIds(allUids);
+      const photoMap: Record<string, string | null> = {};
+      profiles.forEach((p) => { photoMap[p.uid] = p.profilePhoto; });
+      setAttendeePhotos(photoMap);
+    }
+  }, []);
 
   useEffect(() => {
     (async () => {
-      const [official, userCreated] = await Promise.all([getApprovedOfficialEvents(), getApprovedUserEvents()]);
-      setOfficialEvents(official);
-      setUserEvents(userCreated);
-
-      const allUids = [...new Set([...official, ...userCreated].flatMap((e) => e.attendees || []))];
-      if (allUids.length > 0) {
-        const profiles = await getUsersByIds(allUids);
-        const photoMap: Record<string, string | null> = {};
-        profiles.forEach((p) => { photoMap[p.uid] = p.profilePhoto; });
-        setAttendeePhotos(photoMap);
-      }
-
+      await fetchData();
       setLoading(false);
     })();
-  }, []);
+  }, [fetchData]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchData();
+    setRefreshing(false);
+  }, [fetchData]);
 
   const formatEventTime = (event: AppEvent) => {
     if (!event.date) return '';
@@ -60,6 +70,7 @@ export default function EventsScreen() {
           data={userEvents.slice(0, 5)}
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Theme.colors.brand.primary} colors={[Theme.colors.brand.primary]} />}
           ListHeaderComponent={() => (
             <View className="mb-4">
               <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 pb-6 pt-2">

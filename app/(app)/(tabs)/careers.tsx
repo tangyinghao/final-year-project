@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, View } from 'react-native';
+import { ActivityIndicator, FlatList, RefreshControl, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
@@ -30,15 +30,26 @@ export default function CareersScreen() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [mentorships, setMentorships] = useState<Mentorship[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchData = useCallback(async () => {
+    const [j, m] = await Promise.all([getApprovedJobs(), getApprovedMentorships()]);
+    setJobs(j);
+    setMentorships(m);
+  }, []);
 
   useEffect(() => {
     (async () => {
-      const [j, m] = await Promise.all([getApprovedJobs(), getApprovedMentorships()]);
-      setJobs(j);
-      setMentorships(m);
+      await fetchData();
       setLoading(false);
     })();
-  }, []);
+  }, [fetchData]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchData();
+    setRefreshing(false);
+  }, [fetchData]);
 
   const currentData = activeTab === 'Jobs'
     ? jobs.map((j) => ({ id: j.id, title: j.title, company: j.company, location: j.location, poster: j.posterName, tags: j.tags }))
@@ -68,6 +79,7 @@ export default function CareersScreen() {
           data={filteredData}
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Theme.colors.brand.primary} colors={[Theme.colors.brand.primary]} />}
           renderItem={({ item }) => (
             <CareerCard
               title={item.title}
