@@ -27,6 +27,14 @@ export default function SignUp() {
       Alert.alert('Sign Up', 'Please enter your graduation year.');
       return;
     }
+    if (role === 'alumni' && graduationYear) {
+      const y = parseInt(graduationYear);
+      const currentYear = new Date().getFullYear();
+      if (isNaN(y) || y < 1991 || y > currentYear + 6) {
+        Alert.alert('Sign Up', `Please enter a valid graduation year (1991–${currentYear + 6}).`);
+        return;
+      }
+    }
 
     setLoading(true);
     const gradYear = role === 'alumni' && graduationYear ? parseInt(graduationYear) : undefined;

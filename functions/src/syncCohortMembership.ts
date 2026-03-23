@@ -50,7 +50,6 @@ export const syncCohortMembership = firestore.onDocumentWritten(
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         });
       } else {
-        // Ensure user is in memberIds
         const data = cohortSnap.data()!;
         const memberIds: string[] = data.memberIds || [];
 
@@ -61,11 +60,52 @@ export const syncCohortMembership = firestore.onDocumentWritten(
           });
         }
 
-        // Keep cohort chat participants in sync
+        // Keep cohort chat participants in sync — recreate if missing
         if (data.chatId) {
           const chatRef = db.collection('chats').doc(data.chatId);
-          tx.update(chatRef, {
-            participants: admin.firestore.FieldValue.arrayUnion(uid),
+          const chatSnap = await tx.get(chatRef);
+          if (chatSnap.exists) {
+            tx.update(chatRef, {
+              participants: admin.firestore.FieldValue.arrayUnion(uid),
+              updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+          } else {
+            // Chat was deleted or lost — recreate it
+            const newChatRef = db.collection('chats').doc();
+            tx.set(newChatRef, {
+              type: 'cohort',
+              participants: [...memberIds, uid].filter((v, i, a) => a.indexOf(v) === i),
+              name: `Class of ${graduationYear}`,
+              createdBy: uid,
+              matchType: 'manual',
+              cohortYear: graduationYear,
+              lastMessage: null,
+              unreadCount: {},
+              createdAt: admin.firestore.FieldValue.serverTimestamp(),
+              updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+            tx.update(cohortRef, {
+              chatId: newChatRef.id,
+              updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+          }
+        } else {
+          // No chatId at all — create the chat
+          const newChatRef = db.collection('chats').doc();
+          tx.set(newChatRef, {
+            type: 'cohort',
+            participants: [...memberIds, uid].filter((v, i, a) => a.indexOf(v) === i),
+            name: `Class of ${graduationYear}`,
+            createdBy: uid,
+            matchType: 'manual',
+            cohortYear: graduationYear,
+            lastMessage: null,
+            unreadCount: {},
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+          tx.update(cohortRef, {
+            chatId: newChatRef.id,
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
           });
         }

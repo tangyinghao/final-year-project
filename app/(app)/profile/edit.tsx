@@ -61,6 +61,15 @@ export default function EditProfileScreen() {
       } else if (photoUri) {
         profilePhotoUrl = await uploadProfilePhoto(user.uid, photoUri);
       }
+      if (gradYear) {
+        const y = parseInt(gradYear);
+        const currentYear = new Date().getFullYear();
+        if (isNaN(y) || y < 1991 || y > currentYear + 6) {
+          Alert.alert('Invalid Year', `Please enter a valid graduation year (1991–${currentYear + 6}).`);
+          setSaving(false);
+          return;
+        }
+      }
       await updateUserProfile(user.uid, {
         displayName: name.trim(),
         bio: bio.trim(),
