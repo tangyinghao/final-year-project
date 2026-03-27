@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Image, Modal, Animated, Alert, ActivityIndicator, Dimensions } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Image, Modal, Animated, Alert, ActivityIndicator, Dimensions, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -84,6 +84,7 @@ export default function ChatDetailScreen() {
 
   const [sendingAttachment, setSendingAttachment] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [previewFile, setPreviewFile] = useState<{ uri: string; name: string } | null>(null);
   const [fullViewImage, setFullViewImage] = useState<string | null>(null);
   const [showAttachMenu, setShowAttachMenu] = useState(false);
 
@@ -136,13 +137,19 @@ export default function ChatDetailScreen() {
       Alert.alert('File Too Large', 'Files must be under 10MB.');
       return;
     }
+    setPreviewFile({ uri: asset.uri, name: asset.name });
+  };
+
+  const handleConfirmSendFile = async () => {
+    if (!user || !previewFile) return;
     setSendingAttachment(true);
     try {
-      await sendFileMessage(chatId, user.uid, user.displayName, asset.uri, asset.name);
+      await sendFileMessage(chatId, user.uid, user.displayName, previewFile.uri, previewFile.name);
     } catch {
       Alert.alert('Error', 'Failed to send file.');
     } finally {
       setSendingAttachment(false);
+      setPreviewFile(null);
     }
   };
 
@@ -254,12 +261,15 @@ export default function ChatDetailScreen() {
                       />
                     </TouchableOpacity>
                   ) : msg.type === 'file' && msg.fileUrl ? (
-                    <View className="flex-row items-center px-3 py-2">
-                      <Ionicons name="document-text" size={24} color="#1B1C62" />
-                      <Text className={`text-[14px] ml-2 flex-1 ${isSender ? 'text-[#1B1C62]' : 'text-black'}`} numberOfLines={2} style={{ fontFamily: 'PlusJakartaSans-Medium' }}>
-                        {msg.fileName || 'File'}
-                      </Text>
-                    </View>
+                    <TouchableOpacity onPress={() => Linking.openURL(msg.fileUrl!)}>
+                      <View className="flex-row items-center">
+                        <Ionicons name="document-text" size={24} color="#1B1C62" />
+                        <Text className={`text-[14px] ml-2 flex-shrink ${isSender ? 'text-[#1B1C62]' : 'text-black'}`} numberOfLines={2} style={{ fontFamily: 'PlusJakartaSans-Medium' }}>
+                          {msg.fileName || 'File'}
+                        </Text>
+                        <Ionicons name="download-outline" size={18} color="#8E8E93" style={{ marginLeft: 6 }} />
+                      </View>
+                    </TouchableOpacity>
                   ) : (
                     <Text
                       className={`text-[15px] leading-5 ${isSender ? 'text-[#1B1C62]' : 'text-black'}`}
@@ -474,6 +484,35 @@ export default function ChatDetailScreen() {
               <Text className="text-white text-[16px] font-bold" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity style={{ width: 120, height: 48 }} className="rounded-xl bg-[#1B1C62] items-center justify-center" onPress={handleConfirmSendImage} disabled={sendingAttachment}>
+              {sendingAttachment ? (
+                <ActivityIndicator color="white" size="small" />
+              ) : (
+                <Text className="text-white text-[16px] font-bold" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Send</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* File Confirmation Before Send */}
+      <Modal visible={!!previewFile} transparent animationType="fade">
+        <View className="flex-1 bg-black/90 justify-center items-center">
+          <TouchableOpacity className="absolute top-12 right-5 z-10 w-10 h-10 items-center justify-center" onPress={() => setPreviewFile(null)}>
+            <Ionicons name="close" size={28} color="white" />
+          </TouchableOpacity>
+          {previewFile && (
+            <View className="items-center px-8">
+              <Ionicons name="document-text" size={64} color="white" />
+              <Text className="text-white text-[18px] font-bold mt-4 text-center" style={{ fontFamily: 'PlusJakartaSans-Bold' }} numberOfLines={3}>
+                {previewFile.name}
+              </Text>
+            </View>
+          )}
+          <View className="flex-row mt-6 gap-4">
+            <TouchableOpacity style={{ width: 120, height: 48 }} className="rounded-xl border border-white/50 items-center justify-center" onPress={() => setPreviewFile(null)}>
+              <Text className="text-white text-[16px] font-bold" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={{ width: 120, height: 48 }} className="rounded-xl bg-[#1B1C62] items-center justify-center" onPress={handleConfirmSendFile} disabled={sendingAttachment}>
               {sendingAttachment ? (
                 <ActivityIndicator color="white" size="small" />
               ) : (

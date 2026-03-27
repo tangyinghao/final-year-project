@@ -20,14 +20,9 @@ import { db, storage } from '@/config/firebaseConfig';
 import { Chat, Message } from '@/types';
 
 async function uriToBlob(uri: string): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.onload = () => resolve(xhr.response as Blob);
-    xhr.onerror = () => reject(new Error('Failed to convert URI to blob'));
-    xhr.responseType = 'blob';
-    xhr.open('GET', uri, true);
-    xhr.send(null);
-  });
+  const response = await fetch(uri);
+  const blob = await response.blob();
+  return blob;
 }
 
 // ── Fetch chats where user is a participant ──────────────────────────

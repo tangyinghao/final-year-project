@@ -16,15 +16,10 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/config/firebaseConfig';
 import { Job, Mentorship, JobApplication, MentorshipRequest } from '@/types';
 
-function uriToBlob(uri: string): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.onload = () => resolve(xhr.response as Blob);
-    xhr.onerror = () => reject(new Error('Failed to create blob'));
-    xhr.responseType = 'blob';
-    xhr.open('GET', uri, true);
-    xhr.send(null);
-  });
+async function uriToBlob(uri: string): Promise<Blob> {
+  const response = await fetch(uri);
+  const blob = await response.blob();
+  return blob;
 }
 
 // ── Jobs ─────────────────────────────────────────────────────────────
