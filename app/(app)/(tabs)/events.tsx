@@ -35,11 +35,12 @@ export default function EventsScreen() {
   }, []);
 
   useEffect(() => {
+    if (!user?.uid) return;
     (async () => {
       await fetchData();
       setLoading(false);
     })();
-  }, [fetchData]);
+  }, [fetchData, user?.uid]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
