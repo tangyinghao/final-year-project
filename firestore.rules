@@ -12,14 +12,20 @@ service cloud.firestore {
     function isParticipant(chatData) {
       return isAuth() && request.auth.uid in chatData.participants;
     }
+    function validGradYear() {
+      let y = request.resource.data.graduationYear;
+      let currentYear = request.time.toMillis() / 31536000000 + 1970;
+      return y == null || (y is int && y >= 1991 && y <= currentYear + 6);
+    }
 
     // ── users/{uid} ─────────────────────────────────────────────────
     match /users/{uid} {
       allow read: if isAuth();
-      allow create: if isOwner(uid);
+      allow create: if isOwner(uid) && validGradYear();
       allow update: if isOwner(uid)
         && !request.resource.data.diff(resource.data).affectedKeys()
-            .hasAny(['role', 'status', 'uid', 'email', 'createdAt']);
+            .hasAny(['role', 'status', 'uid', 'email', 'createdAt'])
+        && validGradYear();
       allow delete: if false;
 
       // savedItems subcollection
