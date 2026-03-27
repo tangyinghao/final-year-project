@@ -23,21 +23,19 @@ export default function SignUp() {
       Alert.alert('Sign Up', 'Please fill in all required fields.');
       return;
     }
-    if (role === 'alumni' && !graduationYear.trim()) {
+    if (!graduationYear.trim()) {
       Alert.alert('Sign Up', 'Please enter your graduation year.');
       return;
     }
-    if (role === 'alumni' && graduationYear) {
-      const y = parseInt(graduationYear);
-      const currentYear = new Date().getFullYear();
-      if (isNaN(y) || y < 1991 || y > currentYear + 6) {
-        Alert.alert('Sign Up', `Please enter a valid graduation year (1991–${currentYear + 6}).`);
-        return;
-      }
+    const y = parseInt(graduationYear);
+    const currentYear = new Date().getFullYear();
+    if (isNaN(y) || y < 1991 || y > currentYear + 6) {
+      Alert.alert('Sign Up', `Please enter a valid graduation year (1991–${currentYear + 6}).`);
+      return;
     }
 
     setLoading(true);
-    const gradYear = role === 'alumni' && graduationYear ? parseInt(graduationYear) : undefined;
+    const gradYear = graduationYear ? parseInt(graduationYear) : undefined;
     const result = await register(email.trim(), password, displayName.trim(), role, gradYear);
     setLoading(false);
 
@@ -98,15 +96,13 @@ export default function SignUp() {
                     </View>
                   </View>
 
-                  {role === 'alumni' ? (
-                    <TextField
-                      label="Graduation Year"
-                      placeholder="e.g. 2024"
-                      keyboardType="number-pad"
-                      value={graduationYear}
-                      onChangeText={setGraduationYear}
-                    />
-                  ) : null}
+                  <TextField
+                    label="Graduation Year"
+                    placeholder="e.g. 2024"
+                    keyboardType="number-pad"
+                    value={graduationYear}
+                    onChangeText={setGraduationYear}
+                  />
                 </View>
 
                 <PrimaryButton label="Sign Up" onPress={handleSignUp} loading={loading} />
