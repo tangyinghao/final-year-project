@@ -11,9 +11,11 @@ import { getApprovedOfficialEvents, getApprovedUserEvents } from '@/services/eve
 import { getUsersByIds } from '@/services/userService';
 import { AppEvent } from '@/types';
 import { Theme } from '@/constants/theme';
+import { useAuth } from '@/context/authContext';
 
 export default function EventsScreen() {
   const router = useRouter();
+  const { user } = useAuth();
   const [officialEvents, setOfficialEvents] = useState<AppEvent[]>([]);
   const [userEvents, setUserEvents] = useState<AppEvent[]>([]);
   const [loading, setLoading] = useState(true);
