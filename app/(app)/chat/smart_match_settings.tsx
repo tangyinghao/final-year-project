@@ -109,7 +109,7 @@ export default function SmartMatchSettingsScreen() {
         </View>
       </ScrollView>
 
-      <View className="px-5 py-4 pb-8 bg-white border-t border-[#E5E5EA]">
+      <View className="px-5 py-4 pb-2 bg-white border-t border-[#E5E5EA]">
         <TouchableOpacity className="w-full h-14 bg-[#1B1C62] rounded-xl flex-row items-center justify-center" onPress={handleStartMatching}>
           <Text className="text-white text-[16px] font-bold mr-2" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Start Matching</Text>
           <Ionicons name="flash" size={20} color="white" />

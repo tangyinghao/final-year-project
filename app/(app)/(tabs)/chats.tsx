@@ -80,7 +80,7 @@ export default function ChatsScreen() {
   });
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView edges={['top']} className="flex-1 bg-white">
       <StatusBar style="dark" />
       <ScreenHeader title="Chats" rightIconName="add" onRightPress={() => router.push('/chat/create')} className="pb-2" />
       <View className="px-4 py-3">

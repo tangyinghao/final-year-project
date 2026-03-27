@@ -60,7 +60,7 @@ export default function CareersScreen() {
     : currentData.filter((item) => activeTag === 'All' || item.tags.includes(activeTag));
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView edges={['top']} className="flex-1 bg-white">
       <StatusBar style="dark" />
       <ScreenHeader title="Careers" rightIconName="add" onRightPress={() => router.push('/careers/jobs/submit')} className="pb-4" />
 

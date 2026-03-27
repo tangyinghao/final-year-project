@@ -103,7 +103,7 @@ export default function SubmitListingScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView edges={['top']} className="flex-1 bg-white">
       <StatusBar style="dark" />
       
       {/* Header */}

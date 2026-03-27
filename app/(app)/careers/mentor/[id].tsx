@@ -147,7 +147,7 @@ export default function MentorDetailScreen() {
       </ScrollView>
 
       {/* Fixed Bottom Action */}
-      <View className="px-5 py-4 pb-8 bg-white border-t border-[#E5E5EA] shadow-xl">
+      <View className="px-5 py-4 pb-2 bg-white border-t border-[#E5E5EA]">
         <TouchableOpacity
           className={`w-full py-4 rounded-xl items-center justify-center ${hasRequested ? 'bg-gray-300' : 'bg-[#1B1C62]'}`}
           onPress={handleRequestMentorship}

@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { View } from 'react-native';
+import { View, Platform } from 'react-native';
 import { TabUnreadBadge } from '@/components/navigation/TabUnreadBadge';
 import { Theme } from '@/constants/theme';
 import { useUnread } from '@/context/unreadContext';
@@ -18,8 +18,8 @@ export default function TabLayout() {
           backgroundColor: Theme.colors.surface.base,
           borderTopWidth: 1,
           borderTopColor: Theme.colors.border.default,
-          height: 84,
-          paddingBottom: 24,
+          height: Platform.OS === 'ios' ? 84 : 64,
+          paddingBottom: Platform.OS === 'ios' ? 24 : 8,
           paddingTop: 8,
         },
         tabBarLabelStyle: {

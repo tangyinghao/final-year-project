@@ -89,7 +89,7 @@ export default function JobDetailScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F7F7F7]">
+    <SafeAreaView className="flex-1 bg-white">
       <StatusBar style="dark" />
 
       {/* Header */}
@@ -112,7 +112,7 @@ export default function JobDetailScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1 bg-[#F7F7F7]" showsVerticalScrollIndicator={false}>
         {/* Header Card */}
         <View className="bg-white px-5 py-6 border-b border-[#E5E5EA]">
           <View className="flex-row items-center mb-4">
@@ -181,7 +181,7 @@ export default function JobDetailScreen() {
       </ScrollView>
 
       {/* Action Bar */}
-      <View className="px-5 py-4 pb-8 bg-white border-t border-[#E5E5EA] shadow-xl">
+      <View className="px-5 py-4 pb-2 bg-white border-t border-[#E5E5EA]">
         <TouchableOpacity
           className={`w-full h-14 rounded-xl flex-row items-center justify-center ${hasApplied ? 'bg-gray-300' : 'bg-[#1B1C62]'}`}
           onPress={() => setShowApplyDialog(true)}

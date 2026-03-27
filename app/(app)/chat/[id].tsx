@@ -299,7 +299,7 @@ export default function ChatDetailScreen() {
         </ScrollView>
 
         {/* Input Area */}
-        <View className="bg-white border-t border-[#E5E5EA] px-4 py-3 pb-8">
+        <View className="bg-white border-t border-[#E5E5EA] px-4 py-3 pb-2">
           {/* Attach popover */}
           {showAttachMenu && (
             <>

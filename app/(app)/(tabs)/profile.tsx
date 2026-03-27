@@ -70,7 +70,7 @@ export default function ProfileScreen() {
   const roleBadge = user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Student';
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView edges={['top']} className="flex-1 bg-white">
       <StatusBar style="dark" />
       <ScreenHeader title="Profile" className="pb-6" />
 

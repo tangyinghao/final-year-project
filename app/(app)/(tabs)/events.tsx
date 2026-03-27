@@ -59,7 +59,7 @@ export default function EventsScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView edges={['top']} className="flex-1 bg-white">
       <StatusBar style="dark" />
       <ScreenHeader title="Events" rightIconName="add" onRightPress={() => router.push('/events/create')} className="pb-4" />
 

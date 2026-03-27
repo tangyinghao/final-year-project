@@ -144,7 +144,7 @@ export default function EventDetailScreen() {
         </View>
       </ScrollView>
 
-      <View className="border-t border-border-default bg-white px-5 pb-8 pt-4">
+      <View className="border-t border-border-default bg-white px-5 pb-2 pt-4">
         {hasJoined ? (
           <DangerOutlineButton label="Leave Event" onPress={() => setShowLeaveDialog(true)} />
         ) : event?.maxCapacity && event.attendeeCount >= event.maxCapacity ? (
