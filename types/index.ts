@@ -40,6 +40,7 @@ export interface Chat {
   createdBy: string;
   matchType: MatchType;
   cohortYear: number | null;
+  groupPhoto?: string | null;
   lastMessage: LastMessage | null;
   createdAt: Timestamp;
   updatedAt: Timestamp;

@@ -149,6 +149,7 @@ export async function createGroupChat(
     type: 'group',
     participants: allParticipants,
     name: groupName,
+    groupPhoto: null,
     createdBy: currentUserId,
     matchType,
     cohortYear: null,
@@ -158,6 +159,24 @@ export async function createGroupChat(
     updatedAt: serverTimestamp(),
   });
   return chatDoc.id;
+}
+
+// ── Upload group photo ────────────────────────────────────────────
+export async function uploadGroupPhoto(
+  chatId: string,
+  imageUri: string
+): Promise<string> {
+  const blob = await uriToBlob(imageUri);
+  const storageRef = ref(storage, `chat-group-photos/${chatId}/${Date.now()}.jpg`);
+  await uploadBytes(storageRef, blob);
+  const downloadUrl = await getDownloadURL(storageRef);
+  await updateDoc(doc(db, 'chats', chatId), { groupPhoto: downloadUrl });
+  return downloadUrl;
+}
+
+// ── Remove group photo ────────────────────────────────────────────
+export async function removeGroupPhoto(chatId: string): Promise<void> {
+  await updateDoc(doc(db, 'chats', chatId), { groupPhoto: null });
 }
 
 // ── Get single chat ──────────────────────────────────────────────────

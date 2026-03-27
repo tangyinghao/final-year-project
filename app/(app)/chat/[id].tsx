@@ -7,7 +7,7 @@ import { StatusBar } from 'expo-status-bar';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { useAuth } from '@/context/authContext';
-import { subscribeToMessages, sendMessage as sendChatMessage, sendImageMessage, sendFileMessage, getChatParticipantIds, markChatAsRead } from '@/services/chatService';
+import { subscribeToMessages, sendMessage as sendChatMessage, sendImageMessage, sendFileMessage, getChatParticipantIds, markChatAsRead, getChat, uploadGroupPhoto, removeGroupPhoto } from '@/services/chatService';
 import { getUsersByIds } from '@/services/userService';
 import { Message, UserProfile } from '@/types';
 import { DEFAULT_AVATAR } from '@/constants/images';
@@ -23,6 +23,9 @@ export default function ChatDetailScreen() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [members, setMembers] = useState<UserProfile[]>([]);
   const [showGroupInfo, setShowGroupInfo] = useState(false);
+  const [groupPhoto, setGroupPhoto] = useState<string | null>(null);
+  const [showPhotoMenu, setShowPhotoMenu] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 
   const overlayOpacity = useRef(new Animated.Value(0)).current;
@@ -50,6 +53,14 @@ export default function ChatDetailScreen() {
       setMembers(profiles);
     })();
   }, [chatId]);
+
+  useEffect(() => {
+    if (!chatId || isGroup !== 'true') return;
+    (async () => {
+      const chat = await getChat(chatId);
+      if (chat?.groupPhoto) setGroupPhoto(chat.groupPhoto);
+    })();
+  }, [chatId, isGroup]);
 
   const openGroupInfo = () => {
     overlayOpacity.setValue(0);
@@ -135,6 +146,39 @@ export default function ChatDetailScreen() {
     }
   };
 
+  const handlePickGroupPhoto = async () => {
+    setShowPhotoMenu(false);
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    });
+    if (result.canceled || !result.assets?.[0]?.uri) return;
+    setUploadingPhoto(true);
+    try {
+      const url = await uploadGroupPhoto(chatId, result.assets[0].uri);
+      setGroupPhoto(url);
+    } catch {
+      Alert.alert('Error', 'Failed to upload group photo.');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const handleRemoveGroupPhoto = async () => {
+    setShowPhotoMenu(false);
+    setUploadingPhoto(true);
+    try {
+      await removeGroupPhoto(chatId);
+      setGroupPhoto(null);
+    } catch {
+      Alert.alert('Error', 'Failed to remove group photo.');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-[#F7F7F7]">
       <StatusBar style="dark" />
@@ -151,7 +195,6 @@ export default function ChatDetailScreen() {
             if (isGroup === 'true') {
               openGroupInfo();
             } else {
-              // For direct chats, find the other user's ID
               const otherMember = members.find((m) => m.uid !== user?.uid);
               if (otherMember) router.push(`/profile/view/${otherMember.uid}` as any);
             }
@@ -164,7 +207,16 @@ export default function ChatDetailScreen() {
             <Text className="text-[11px] text-[#8E8E93]" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>Tap for group info</Text>
           )}
         </TouchableOpacity>
-        <View className="w-10" />
+        {isGroup === 'true' ? (
+          <TouchableOpacity onPress={openGroupInfo} className="w-10 h-10 items-center justify-center">
+            <Image
+              source={groupPhoto ? { uri: groupPhoto } : DEFAULT_AVATAR}
+              className="w-9 h-9 rounded-full"
+            />
+          </TouchableOpacity>
+        ) : (
+          <View className="w-10" />
+        )}
       </View>
 
       <KeyboardAvoidingView
@@ -308,6 +360,46 @@ export default function ChatDetailScreen() {
           <Animated.View style={{ maxHeight: '70%', transform: [{ translateY: sheetTranslateY }, { scale: sheetScale }] }}>
             <View className="bg-white rounded-t-2xl px-5 pb-8 pt-3">
               <View className="w-10 h-1 bg-[#E5E5EA] rounded-full self-center mb-4" />
+
+              {/* Group Photo */}
+              <View className="items-center mb-4">
+                <View>
+                  <Image
+                    source={groupPhoto ? { uri: groupPhoto } : DEFAULT_AVATAR}
+                    className="w-20 h-20 rounded-full bg-gray-200"
+                  />
+                  <TouchableOpacity
+                    className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-[#1B1C62] items-center justify-center border-2 border-white"
+                    onPress={() => setShowPhotoMenu(!showPhotoMenu)}
+                    disabled={uploadingPhoto}
+                  >
+                    {uploadingPhoto ? (
+                      <ActivityIndicator size="small" color="white" />
+                    ) : (
+                      <Ionicons name="pencil" size={14} color="white" />
+                    )}
+                  </TouchableOpacity>
+                </View>
+                {showPhotoMenu && (
+                  <View className="bg-white rounded-xl border border-[#E5E5EA] mt-2 overflow-hidden" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 8, elevation: 6 }}>
+                    <TouchableOpacity className="flex-row items-center px-4 py-3" onPress={handlePickGroupPhoto}>
+                      <Ionicons name="image-outline" size={18} color="#1B1C62" />
+                      <Text className="text-[14px] text-black ml-3" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>
+                        {groupPhoto ? 'Change Photo' : 'Choose Photo'}
+                      </Text>
+                    </TouchableOpacity>
+                    {groupPhoto && (
+                      <>
+                        <View style={{ height: 1, backgroundColor: '#E5E5EA', marginHorizontal: 12 }} />
+                        <TouchableOpacity className="flex-row items-center px-4 py-3" onPress={handleRemoveGroupPhoto}>
+                          <Ionicons name="trash-outline" size={18} color="#D71440" />
+                          <Text className="text-[14px] text-[#D71440] ml-3" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>Remove Photo</Text>
+                        </TouchableOpacity>
+                      </>
+                    )}
+                  </View>
+                )}
+              </View>
 
               <View className="flex-row items-center justify-between mb-2">
                 <Text className="text-[20px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{name}</Text>
