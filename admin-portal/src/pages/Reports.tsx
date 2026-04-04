@@ -21,7 +21,11 @@ function statusStyle(status: string) {
   }
 }
 
-export function Reports() {
+interface ReportsProps {
+  initialSelectedId?: string | null;
+}
+
+export function Reports({ initialSelectedId }: ReportsProps) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,6 +75,13 @@ export function Reports() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter]);
+
+  useEffect(() => {
+    if (initialSelectedId && reports.length > 0) {
+      const match = reports.find(r => r.id === initialSelectedId);
+      if (match) { setSelectedReport(match); setConfirmSuspend(false); }
+    }
+  }, [initialSelectedId, reports]);
 
   const handleSuspendUser = async (reportId: string) => {
     setActionLoading(reportId);
@@ -151,7 +162,7 @@ export function Reports() {
                   {reports.map(r => (
                     <tr
                       key={r.id}
-                      className={`hover:bg-gray-50 transition-colors cursor-pointer ${selectedReport?.id === r.id ? 'bg-blue-50/30' : ''}`}
+                      className={`hover:bg-gray-50 transition-colors cursor-pointer ${selectedReport?.id === r.id ? 'bg-blue-100/60' : ''}`}
                       onClick={() => { setSelectedReport(r); setConfirmSuspend(false); }}
                     >
                       <td className="px-6 py-4">
@@ -175,7 +186,7 @@ export function Reports() {
                           onClick={(e) => { e.stopPropagation(); setSelectedReport(r); setConfirmSuspend(false); }}
                           className="text-[#1b1c62] font-medium hover:underline text-sm"
                         >
-                          View
+                          Review
                         </button>
                       </td>
                     </tr>

@@ -4,7 +4,7 @@ import { callGetDashboardStats, callGetPendingContent, callGetReports } from '..
 type Tab = 'Dashboard' | 'Review' | 'Reports' | 'Users';
 
 interface DashboardProps {
-  onNavigate: (tab: Tab) => void;
+  onNavigate: (tab: Tab, selectedId?: string) => void;
 }
 
 interface Stats {
@@ -54,10 +54,10 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     load();
   }, []);
 
-  const statCards = [
-    { label: 'Pending Content', value: stats?.pendingContent ?? 0, isAlert: true },
-    { label: 'Unresolved Reports', value: stats?.unresolvedReports ?? 0, isAlert: true },
-    { label: 'Active Users', value: stats?.activeUsers ?? 0, isAlert: false },
+  const statCards: { label: string; value: number; isAlert: boolean; navigateTo?: Tab }[] = [
+    { label: 'Pending Content', value: stats?.pendingContent ?? 0, isAlert: true, navigateTo: 'Review' },
+    { label: 'Unresolved Reports', value: stats?.unresolvedReports ?? 0, isAlert: true, navigateTo: 'Reports' },
+    { label: 'Active Users', value: stats?.activeUsers ?? 0, isAlert: false, navigateTo: 'Users' },
     { label: 'Total Events', value: stats?.totalEvents ?? 0, isAlert: false },
   ];
 
@@ -73,7 +73,11 @@ export function Dashboard({ onNavigate }: DashboardProps) {
       {/* Stats row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map(stat => (
-          <div key={stat.label} className="bg-white p-6 rounded-2xl border border-[#e5e5ea] shadow-sm flex flex-col">
+          <div
+            key={stat.label}
+            onClick={() => stat.navigateTo && onNavigate(stat.navigateTo)}
+            className={`bg-white p-6 rounded-2xl border border-[#e5e5ea] shadow-sm flex flex-col ${stat.navigateTo ? 'cursor-pointer hover:border-[#1b1c62] transition-colors' : ''}`}
+          >
             <h3 className="text-sm font-medium text-[#8e8e93] mb-2">{stat.label}</h3>
             <span className={`text-4xl font-bold ${stat.isAlert && stat.value > 0 ? 'text-[#d71440]' : 'text-[#333333]'}`}>
               {loading ? '...' : stat.value.toLocaleString()}
@@ -97,7 +101,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
               <div className="p-6 text-center text-[#8e8e93]">No pending content</div>
             ) : (
               pendingItems.map((item, i) => (
-                <div key={item.id} className={`p-4 px-6 flex justify-between items-center ${i !== pendingItems.length - 1 ? 'border-b border-[#e5e5ea]' : ''} hover:bg-[#f6f6f6] transition-colors cursor-pointer`}>
+                <div key={item.id} onClick={() => onNavigate('Review', item.id)} className={`p-4 px-6 flex justify-between items-center ${i !== pendingItems.length - 1 ? 'border-b border-[#e5e5ea]' : ''} hover:bg-[#f6f6f6] transition-colors cursor-pointer`}>
                   <div>
                     <h4 className="font-semibold text-[#333333]">{item.title}</h4>
                     <p className="text-sm text-[#8e8e93]">
@@ -124,7 +128,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
               <div className="p-6 text-center text-[#8e8e93]">No reports</div>
             ) : (
               recentReports.map((r, i) => (
-                <div key={r.id} className={`p-4 px-6 flex justify-between items-center ${i !== recentReports.length - 1 ? 'border-b border-[#e5e5ea]' : ''} hover:bg-red-50 transition-colors cursor-pointer`}>
+                <div key={r.id} onClick={() => onNavigate('Reports', r.id)} className={`p-4 px-6 flex justify-between items-center ${i !== recentReports.length - 1 ? 'border-b border-[#e5e5ea]' : ''} hover:bg-red-50 transition-colors cursor-pointer`}>
                   <div className="flex gap-4 items-center">
                     <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-[#d71440]">
                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

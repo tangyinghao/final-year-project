@@ -16,7 +16,13 @@ function App() {
   const [adminUid, setAdminUid] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>('Dashboard');
+  const [initialSelectedId, setInitialSelectedId] = useState<string | null>(null);
   const [showCreateEvent, setShowCreateEvent] = useState(false);
+
+  const handleNavigate = (tab: Tab, selectedId?: string) => {
+    setInitialSelectedId(selectedId ?? null);
+    setActiveTab(tab);
+  };
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
@@ -58,11 +64,11 @@ function App() {
 
   const renderPage = () => {
     switch (activeTab) {
-      case 'Dashboard': return <Dashboard onNavigate={setActiveTab} />;
-      case 'Review': return <Review />;
-      case 'Reports': return <Reports />;
+      case 'Dashboard': return <Dashboard onNavigate={handleNavigate} />;
+      case 'Review': return <Review initialSelectedId={initialSelectedId} />;
+      case 'Reports': return <Reports initialSelectedId={initialSelectedId} />;
       case 'Users': return <Users />;
-      default: return <Dashboard onNavigate={setActiveTab} />;
+      default: return <Dashboard onNavigate={handleNavigate} />;
     }
   };
 
@@ -70,7 +76,7 @@ function App() {
     <>
       <Layout
         activeTab={activeTab}
-        onNavigate={setActiveTab}
+        onNavigate={handleNavigate}
         onLogout={handleLogout}
         onCreateEvent={() => setShowCreateEvent(true)}
       >

@@ -26,7 +26,11 @@ function eventTypeStyle(type: string) {
   return 'bg-blue-100 text-blue-800';
 }
 
-export function Review() {
+interface ReviewProps {
+  initialSelectedId?: string | null;
+}
+
+export function Review({ initialSelectedId }: ReviewProps) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,6 +57,13 @@ export function Review() {
   }, [filter, statusFilter]);
 
   useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    if (initialSelectedId && items.length > 0) {
+      const match = items.find(i => i.id === initialSelectedId);
+      if (match) setSelectedItem(match);
+    }
+  }, [initialSelectedId, items]);
 
   const handleAction = async (item: { id: string; _collection: string }, action: 'approve' | 'reject') => {
     setActionLoading(item.id);
@@ -169,7 +180,7 @@ export function Review() {
                 {items.map(item => (
                   <tr
                     key={item.id}
-                    className={`hover:bg-gray-50 transition-colors cursor-pointer ${selectedItem?.id === item.id ? 'bg-blue-50/30' : ''}`}
+                    className={`hover:bg-gray-50 transition-colors cursor-pointer ${selectedItem?.id === item.id ? 'bg-blue-100/60' : ''}`}
                     onClick={() => setSelectedItem(item)}
                   >
                     <td className="px-6 py-4">

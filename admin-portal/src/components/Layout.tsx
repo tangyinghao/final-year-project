@@ -3,7 +3,7 @@ import React from 'react';
 type LayoutProps = {
   children: React.ReactNode;
   activeTab: 'Dashboard' | 'Review' | 'Reports' | 'Users';
-  onNavigate: (tab: 'Dashboard' | 'Review' | 'Reports' | 'Users') => void;
+  onNavigate: (tab: 'Dashboard' | 'Review' | 'Reports' | 'Users', selectedId?: string) => void;
   onLogout: () => void;
   onCreateEvent: () => void;
 };
