@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@/context/authContext';
 import { getMatchResults } from '@/services/matchingService';
+import { createDirectChat } from '@/services/chatService';
 import { getUsersByIds } from '@/services/userService';
 import { MatchResult, UserProfile } from '@/types';
 import { DEFAULT_AVATAR } from '@/constants/images';
@@ -107,7 +108,10 @@ export default function SmartMatchResultsScreen() {
 
                 <View className="flex-row gap-3">
                   <TouchableOpacity className="flex-1 bg-[#1B1C62] py-3 rounded-xl items-center justify-center"
-                    onPress={() => router.push(`/chat/${match.profile.uid}?name=${encodeURIComponent(match.profile.displayName)}` as any)}>
+                    onPress={async () => {
+                      const chatId = await createDirectChat(user!.uid, match.profile.uid);
+                      router.push(`/chat/${chatId}?name=${encodeURIComponent(match.profile.displayName)}` as any);
+                    }}>
                     <Text className="text-white font-bold text-[15px]" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Say Hi</Text>
                   </TouchableOpacity>
                   <TouchableOpacity className="flex-1 border border-[#1B1C62] py-3 rounded-xl items-center justify-center"

@@ -116,14 +116,3 @@ export async function uploadEventImage(eventId: string, uri: string): Promise<st
   await uploadBytes(storageRef, blob);
   return getDownloadURL(storageRef);
 }
-
-// Get user's own events (any status)
-export async function getMyEvents(userId: string): Promise<AppEvent[]> {
-  const q = query(
-    collection(db, 'events'),
-    where('createdBy', '==', userId),
-    orderBy('createdAt', 'desc')
-  );
-  const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as AppEvent));
-}
