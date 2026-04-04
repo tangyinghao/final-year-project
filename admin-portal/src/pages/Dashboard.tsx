@@ -38,7 +38,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
       try {
         const [statsRes, contentRes, reportsRes] = await Promise.all([
           callGetDashboardStats({}),
-          callGetPendingContent({ limit: 3 }),
+          callGetPendingContent({ limit: 3, statusFilter: 'pending' }),
           callGetReports({ limit: 3 }),
         ]);
         setStats(statsRes.data as Stats);
