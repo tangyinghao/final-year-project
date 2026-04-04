@@ -1,15 +1,10 @@
 /**
- * Seed script — populates Firebase Auth + Firestore with test data.
+ * This seed script populates Firebase Auth + Firestore with test data.
  *
- * Prerequisites:
- *   npm install -g firebase-tools
- *   npm install firebase-admin --save-dev
- *   firebase login
- *
- * Usage:
+ * How to use:
  *   node scripts/seedFirestore.js
  *
- * What it creates:
+ * Created Content:
  *   - 22 Auth users  (2 admins, 20 students/alumni)
  *   - 22 user docs   in  users/
  *   - 2 group chats  in  chats/   with messages

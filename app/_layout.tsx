@@ -17,14 +17,19 @@ const MainLayout = () => {
         // check if user is authenticated or not
         if (typeof isAuthenticated == 'undefined') return;
         const inApp = segments[0] == '(app)';
-        if (isAuthenticated && !inApp) {
-            // redirect to home
-            router.replace('/(app)/(tabs)/chats');
+        const inOnboarding = segments[0] == 'onboarding';
+        if (isAuthenticated) {
+            if (user?.onboarded === false && !inOnboarding) {
+                // New user — complete profile first
+                router.replace('/onboarding');
+            } else if (user?.onboarded !== false && !inApp) {
+                // Existing or onboarded user — go to app
+                router.replace('/(app)/(tabs)/chats');
+            }
         } else if (isAuthenticated == false) {
-            // redirect to app
             router.replace('/logIn');
         }
-    }, [isAuthenticated]);
+    }, [isAuthenticated, user?.onboarded]);
 
     // Register push token and set up notification listeners when authenticated
     useEffect(() => {

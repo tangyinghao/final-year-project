@@ -1,8 +1,8 @@
 /**
- * Repair script — fixes cohorts with missing/stale chat documents
+ * Repair script fixes cohorts with missing/stale chat documents
  * and ensures all users with a graduationYear are in their cohort.
  *
- * Usage: node scripts/repairCohorts.js
+ * How to use: node scripts/repairCohorts.js
  */
 const admin = require('firebase-admin');
 const path = require('path');

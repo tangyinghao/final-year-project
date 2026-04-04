@@ -1,14 +1,7 @@
-import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from '@/config/firebaseConfig';
 import { MatchRequest, MatchResponse, MatchResult, UserProfile } from '@/types';
+import { collection, getDocs, limit, query, where } from 'firebase/firestore';
 
-/**
- * Client-side smart matching service for MVP.
- *
- * Uses the same MatchRequest / MatchResponse contract that the future
- * Cloud Function `getMatchResults` will use, so screens can switch
- * implementations without code changes.
- */
 export async function getMatchResults(req: MatchRequest): Promise<MatchResponse> {
   // Fetch candidate users from Firestore
   const q = query(
@@ -45,7 +38,7 @@ export async function getMatchResults(req: MatchRequest): Promise<MatchResponse>
   return { matches };
 }
 
-// ── Internal scoring ─────────────────────────────────────────────────
+// Internal scoring
 
 interface ScoredUser {
   user: UserProfile;
@@ -95,7 +88,7 @@ function scoreCandidate(candidate: UserProfile, req: MatchRequest): ScoredUser {
     reasons.push('Alumni connection');
   }
 
-  // Normalize to percentage (cap at 99)
+  // Normalize to percentage
   score = Math.min(99, Math.max(10, score));
 
   if (reasons.length === 0) {

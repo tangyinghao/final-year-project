@@ -15,6 +15,7 @@ export interface UserProfile {
   interests: string[];
   bio: string;
   status: UserStatus;
+  onboarded: boolean;
   expoPushToken: string | null;
   notificationsEnabled: boolean;
   createdAt: Timestamp;

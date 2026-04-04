@@ -1,6 +1,6 @@
 /**
- * Diagnostic script — checks cohort documents and their linked chats.
- * Usage: node scripts/diagnoseCohorts.js
+ * Diagnostic script checks cohort documents and their linked chats.
+ * How to use: node scripts/diagnoseCohorts.js
  */
 const admin = require('firebase-admin');
 const path = require('path');

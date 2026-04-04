@@ -1,25 +1,25 @@
+import { db, storage } from '@/config/firebaseConfig';
+import { UserProfile } from '@/types';
+import { File as ExpoFile } from 'expo-file-system';
 import {
+  collection,
   doc,
   getDoc,
-  updateDoc,
-  serverTimestamp,
-  collection,
-  query,
-  where,
   getDocs,
   limit,
   orderBy,
+  query,
+  serverTimestamp,
+  updateDoc,
+  where,
 } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { File as ExpoFile } from 'expo-file-system';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 
 async function uriToBlob(uri: string): Promise<Blob> {
   const response = await fetch(uri);
   const blob = await response.blob();
   return blob;
 }
-import { db, storage } from '@/config/firebaseConfig';
-import { UserProfile } from '@/types';
 
 export async function getUserProfile(uid: string): Promise<UserProfile | null> {
   const snap = await getDoc(doc(db, 'users', uid));
@@ -28,7 +28,7 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
 
 export async function updateUserProfile(
   uid: string,
-  data: Partial<Pick<UserProfile, 'displayName' | 'bio' | 'programme' | 'graduationYear' | 'interests' | 'profilePhoto' | 'notificationsEnabled'>>
+  data: Partial<Pick<UserProfile, 'displayName' | 'bio' | 'programme' | 'graduationYear' | 'interests' | 'profilePhoto' | 'notificationsEnabled' | 'onboarded'>>
 ): Promise<void> {
   await updateDoc(doc(db, 'users', uid), {
     ...data,
@@ -46,7 +46,7 @@ export async function uploadProfilePhoto(uid: string, uri: string): Promise<stri
 }
 
 export async function searchUsers(searchText: string, currentUid: string): Promise<UserProfile[]> {
-  // Firestore doesn't support full-text search, so we fetch active users and filter client-side
+  // Firestore fetch active users and filter client-side
   const q = query(
     collection(db, 'users'),
     where('status', '==', 'active'),

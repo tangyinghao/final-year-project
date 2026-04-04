@@ -1,20 +1,20 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import { auth, db } from '@/config/firebaseConfig';
+import { UserProfile } from '@/types';
 import {
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  signOut,
-  sendPasswordResetEmail,
   User as FirebaseUser,
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  signInWithEmailAndPassword,
+  signOut,
 } from 'firebase/auth';
 import {
   doc,
   getDoc,
-  setDoc,
   serverTimestamp,
+  setDoc,
 } from 'firebase/firestore';
-import { auth, db } from '@/config/firebaseConfig';
-import { UserProfile } from '@/types';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -105,6 +105,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
         interests: [],
         bio: '',
         status: 'active',
+        onboarded: false,
         expoPushToken: null,
         notificationsEnabled: true,
         createdAt: serverTimestamp(),
@@ -112,6 +113,9 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
       };
 
       await setDoc(doc(db, 'users', uid), userDoc);
+      setUser({ ...userDoc, createdAt: null, updatedAt: null } as unknown as UserProfile);
+      setFirebaseUser(cred.user);
+      setIsAuthenticated(true);
       return { success: true };
     } catch (e: any) {
       let msg = e.message;

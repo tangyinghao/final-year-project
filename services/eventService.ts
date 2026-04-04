@@ -1,31 +1,31 @@
+import { db, storage } from '@/config/firebaseConfig';
+import { AppEvent } from '@/types';
+import { File as ExpoFile } from 'expo-file-system';
 import {
+  addDoc,
+  arrayRemove,
+  arrayUnion,
   collection,
   doc,
-  addDoc,
   getDoc,
   getDocs,
-  updateDoc,
-  query,
-  where,
-  orderBy,
-  serverTimestamp,
-  arrayUnion,
-  arrayRemove,
   increment,
+  orderBy,
+  query,
+  serverTimestamp,
   Timestamp,
+  updateDoc,
+  where,
 } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { File as ExpoFile } from 'expo-file-system';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 
 async function uriToBlob(uri: string): Promise<Blob> {
   const response = await fetch(uri);
   const blob = await response.blob();
   return blob;
 }
-import { db, storage } from '@/config/firebaseConfig';
-import { AppEvent } from '@/types';
 
-// ── Get approved official events (for carousel) ──────────────────────
+// Get approved official events (for carousel)
 export async function getApprovedOfficialEvents(): Promise<AppEvent[]> {
   const q = query(
     collection(db, 'events'),
@@ -37,7 +37,7 @@ export async function getApprovedOfficialEvents(): Promise<AppEvent[]> {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() } as AppEvent));
 }
 
-// ── Get approved user-created events (for main list) ─────────────────
+// Get approved user-created events (for main list)
 export async function getApprovedUserEvents(): Promise<AppEvent[]> {
   const q = query(
     collection(db, 'events'),
@@ -49,13 +49,13 @@ export async function getApprovedUserEvents(): Promise<AppEvent[]> {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() } as AppEvent));
 }
 
-// ── Get event by ID ──────────────────────────────────────────────────
+// Get event by ID
 export async function getEvent(eventId: string): Promise<AppEvent | null> {
   const snap = await getDoc(doc(db, 'events', eventId));
   return snap.exists() ? ({ id: snap.id, ...snap.data() } as AppEvent) : null;
 }
 
-// ── Create user event (always user-created + pending) ────────────────
+// Create user event (always user-created + pending)
 export async function createUserEvent(
   createdBy: string,
   creatorName: string,
@@ -87,7 +87,7 @@ export async function createUserEvent(
   return docRef.id;
 }
 
-// ── Join event ───────────────────────────────────────────────────────
+// Join event
 export async function joinEvent(eventId: string, userId: string): Promise<void> {
   const eventRef = doc(db, 'events', eventId);
   await updateDoc(eventRef, {
@@ -97,7 +97,7 @@ export async function joinEvent(eventId: string, userId: string): Promise<void> 
   });
 }
 
-// ── Leave event ──────────────────────────────────────────────────────
+// Leave event
 export async function leaveEvent(eventId: string, userId: string): Promise<void> {
   const eventRef = doc(db, 'events', eventId);
   await updateDoc(eventRef, {
@@ -107,7 +107,7 @@ export async function leaveEvent(eventId: string, userId: string): Promise<void>
   });
 }
 
-// ── Upload event cover image ─────────────────────────────────────────
+// Upload event cover image
 export async function uploadEventImage(eventId: string, uri: string): Promise<string> {
   const file = new ExpoFile(uri);
   const base64 = await file.base64();
@@ -117,7 +117,7 @@ export async function uploadEventImage(eventId: string, uri: string): Promise<st
   return getDownloadURL(storageRef);
 }
 
-// ── Get user's own events (any status) ───────────────────────────────
+// Get user's own events (any status)
 export async function getMyEvents(userId: string): Promise<AppEvent[]> {
   const q = query(
     collection(db, 'events'),

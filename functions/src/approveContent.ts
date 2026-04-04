@@ -1,5 +1,5 @@
-import { https } from 'firebase-functions/v2';
 import * as admin from 'firebase-admin';
+import { https } from 'firebase-functions/v2';
 
 interface ApproveRequest {
   contentType: 'event' | 'job' | 'mentorship';
@@ -7,9 +7,7 @@ interface ApproveRequest {
   action: 'approve' | 'reject';
 }
 
-/**
- * Callable function for admins to approve or reject pending content.
- */
+// Admins approve or reject pending content
 export const approveContent = https.onCall(async (request) => {
   const db = admin.firestore();
 
