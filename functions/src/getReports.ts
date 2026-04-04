@@ -70,8 +70,8 @@ export const getReports = https.onCall(async (request) => {
     return {
       id: doc.id,
       ...data,
-      reportedUserName: nameMap[data.reportedUserId] || null,
-      reportedByName: nameMap[data.reportedBy] || null,
+      reportedUserName: nameMap[data.reportedUserId] || data.reportedUserName || null,
+      reportedByName: nameMap[data.reportedBy] || data.reportedByName || null,
     };
   });
 

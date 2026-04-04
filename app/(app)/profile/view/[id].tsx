@@ -49,7 +49,7 @@ export default function UserProfileViewScreen() {
           <Ionicons name="chevron-back" size={28} color="#1B1C62" />
         </TouchableOpacity>
         <Text className="text-[18px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Profile</Text>
-        <TouchableOpacity onPress={() => router.push(`/profile/report/${userId}` as any)} className="w-10 items-end justify-center">
+        <TouchableOpacity onPress={() => router.push(`/profile/report/${userId}?name=${encodeURIComponent(profile?.displayName || '')}` as any)} className="w-10 items-end justify-center">
           <Ionicons name="alert-circle-outline" size={24} color="#D71440" />
         </TouchableOpacity>
       </View>

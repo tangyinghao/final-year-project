@@ -19,7 +19,7 @@ const REPORT_REASONS = [
 export default function ReportUserScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const { id } = useLocalSearchParams();
+  const { id, name } = useLocalSearchParams();
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
   const [additionalDetails, setAdditionalDetails] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -28,7 +28,14 @@ export default function ReportUserScreen() {
     if (!selectedReason || !user) return;
     setSubmitting(true);
     try {
-      await submitReport(id as string, user.uid, selectedReason, additionalDetails.trim());
+      await submitReport(
+        id as string,
+        user.uid,
+        selectedReason,
+        additionalDetails.trim(),
+        (name as string) || undefined,
+        user.displayName
+      );
       Alert.alert(
         'Report Submitted',
         "Thank you for letting us know. We've received your report and our Admin team will review it shortly. Your privacy is protected.",
