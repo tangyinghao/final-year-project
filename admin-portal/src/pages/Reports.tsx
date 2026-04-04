@@ -118,6 +118,23 @@ export function Reports({ initialSelectedId }: ReportsProps) {
     setActionLoading(null);
   };
 
+  const handleUnsuspendAndDismiss = async (reportId: string) => {
+    setActionLoading(reportId);
+    try {
+      await callUpdateReportStatus({ reportId, newStatus: 'dismissed', unsuspendUser: true });
+      setReports(prev =>
+        prev.map(r => r.id === reportId ? { ...r, status: 'dismissed' } : r)
+      );
+      if (selectedReport?.id === reportId) {
+        setSelectedReport((prev: typeof selectedReport) => prev ? { ...prev, status: 'dismissed' } : null);
+      }
+    } catch (err) {
+      console.error('Unsuspend & dismiss error:', err);
+      alert('Failed to unsuspend user and dismiss report.');
+    }
+    setActionLoading(null);
+  };
+
   return (
     <div className="flex h-full gap-6">
       {/* Main Table */}
@@ -251,33 +268,33 @@ export function Reports({ initialSelectedId }: ReportsProps) {
               <p className="text-sm text-[#333333]">{formatDate(selectedReport.createdAt)}</p>
             </div>
           </div>
-          {(selectedReport.status === 'pending' || selectedReport.status === 'reviewed') && (
-            <div className="p-6 border-t border-[#e5e5ea] space-y-3">
-              {confirmSuspend ? (
-                <div className="bg-red-50 border border-red-200 rounded-xl p-4 space-y-3">
-                  <p className="text-sm text-[#333333] font-medium">
-                    Suspend <span className="font-bold">{selectedReport.reportedUserName || 'this user'}</span>?
-                  </p>
-                  <p className="text-xs text-[#8e8e93]">This will prevent the user from accessing the platform.</p>
-                  <div className="flex gap-2">
-                    <button
-                      disabled={actionLoading === selectedReport.id}
-                      onClick={() => setConfirmSuspend(false)}
-                      className="flex-1 text-sm font-medium py-2 rounded-lg border border-[#e5e5ea] text-[#333333] hover:bg-gray-50 transition disabled:opacity-50"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      disabled={actionLoading === selectedReport.id}
-                      onClick={() => handleSuspendUser(selectedReport.id)}
-                      className="flex-1 text-sm font-medium py-2 rounded-lg bg-[#d71440] text-white hover:bg-opacity-90 transition disabled:opacity-50"
-                    >
-                      {actionLoading === selectedReport.id ? 'Suspending...' : 'Confirm Suspend'}
-                    </button>
-                  </div>
-                </div>
-              ) : (
+          <div className="p-6 border-t border-[#e5e5ea] space-y-3">
+            {confirmSuspend ? (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 space-y-3">
+                <p className="text-sm text-[#333333] font-medium">
+                  Suspend <span className="font-bold">{selectedReport.reportedUserName || 'this user'}</span>?
+                </p>
+                <p className="text-xs text-[#8e8e93]">This will prevent the user from accessing the platform.</p>
                 <div className="flex gap-2">
+                  <button
+                    disabled={actionLoading === selectedReport.id}
+                    onClick={() => setConfirmSuspend(false)}
+                    className="flex-1 text-sm font-medium py-2 rounded-lg border border-[#e5e5ea] text-[#333333] hover:bg-gray-50 transition disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    disabled={actionLoading === selectedReport.id}
+                    onClick={() => handleSuspendUser(selectedReport.id)}
+                    className="flex-1 text-sm font-medium py-2 rounded-lg bg-[#d71440] text-white hover:bg-opacity-90 transition disabled:opacity-50"
+                  >
+                    {actionLoading === selectedReport.id ? 'Suspending...' : 'Confirm Suspend'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                {selectedReport.status !== 'actioned' && (
                   <button
                     disabled={actionLoading === selectedReport.id}
                     onClick={() => setConfirmSuspend(true)}
@@ -285,6 +302,16 @@ export function Reports({ initialSelectedId }: ReportsProps) {
                   >
                     Suspend User
                   </button>
+                )}
+                {selectedReport.status === 'actioned' ? (
+                  <button
+                    disabled={actionLoading === selectedReport.id}
+                    onClick={() => handleUnsuspendAndDismiss(selectedReport.id)}
+                    className="flex-1 text-sm font-medium py-2.5 rounded-lg border border-[#e5e5ea] text-[#8e8e93] hover:bg-gray-50 transition disabled:opacity-50"
+                  >
+                    {actionLoading === selectedReport.id ? 'Processing...' : 'Unsuspend & Dismiss'}
+                  </button>
+                ) : selectedReport.status !== 'dismissed' ? (
                   <button
                     disabled={actionLoading === selectedReport.id}
                     onClick={() => handleDismiss(selectedReport.id)}
@@ -292,10 +319,10 @@ export function Reports({ initialSelectedId }: ReportsProps) {
                   >
                     {actionLoading === selectedReport.id ? 'Dismissing...' : 'Dismiss'}
                   </button>
-                </div>
-              )}
-            </div>
-          )}
+                ) : null}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

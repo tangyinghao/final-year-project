@@ -286,10 +286,10 @@ export function Review({ initialSelectedId }: ReviewProps) {
             )}
           </div>
 
-          {/* Actions — only for pending content */}
-          {selectedItem.status === 'pending' && (
-            <div className="p-6 border-t border-[#e5e5ea] space-y-2">
-              <div className="flex gap-2">
+          {/* Actions */}
+          <div className="p-6 border-t border-[#e5e5ea] space-y-2">
+            <div className="flex gap-2">
+              {selectedItem.status !== 'rejected' && (
                 <button
                   disabled={actionLoading === selectedItem.id}
                   onClick={() => handleAction(selectedItem, 'reject')}
@@ -297,6 +297,8 @@ export function Review({ initialSelectedId }: ReviewProps) {
                 >
                   {actionLoading === selectedItem.id ? 'Processing...' : 'Reject'}
                 </button>
+              )}
+              {selectedItem.status !== 'approved' && (
                 <button
                   disabled={actionLoading === selectedItem.id}
                   onClick={() => handleAction(selectedItem, 'approve')}
@@ -304,9 +306,9 @@ export function Review({ initialSelectedId }: ReviewProps) {
                 >
                   {actionLoading === selectedItem.id ? 'Processing...' : 'Approve'}
                 </button>
-              </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       )}
     </div>

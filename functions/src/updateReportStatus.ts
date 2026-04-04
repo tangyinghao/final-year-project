@@ -6,6 +6,7 @@ interface UpdateReportStatusRequest {
   reportId: string;
   newStatus: 'actioned' | 'dismissed';
   suspendUser?: boolean;
+  unsuspendUser?: boolean;
 }
 
 const VALID_STATUSES = new Set(['actioned', 'dismissed']);
@@ -17,7 +18,7 @@ const VALID_STATUSES = new Set(['actioned', 'dismissed']);
 export const updateReportStatus = https.onCall(async (request) => {
   const callerUid = await verifyAdmin(request.auth);
 
-  const { reportId, newStatus, suspendUser } = request.data as UpdateReportStatusRequest;
+  const { reportId, newStatus, suspendUser, unsuspendUser } = request.data as UpdateReportStatusRequest;
 
   if (!reportId) {
     throw new https.HttpsError('invalid-argument', 'Missing reportId.');
@@ -41,6 +42,12 @@ export const updateReportStatus = https.onCall(async (request) => {
   if (suspendUser && reportData.reportedUserId) {
     const userRef = db.collection('users').doc(reportData.reportedUserId);
     await userRef.update({ status: 'suspended' });
+  }
+
+  // If unsuspending, restore the reported user's status
+  if (unsuspendUser && reportData.reportedUserId) {
+    const userRef = db.collection('users').doc(reportData.reportedUserId);
+    await userRef.update({ status: 'active' });
   }
 
   await reportRef.update({

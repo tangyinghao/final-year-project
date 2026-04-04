@@ -48,11 +48,11 @@ export const approveContent = https.onCall(async (request) => {
   }
 
   const docData = docSnap.data()!;
-  if (docData.status !== 'pending') {
-    throw new https.HttpsError('failed-precondition', 'Content is not pending.');
-  }
-
   const newStatus = action === 'approve' ? 'approved' : 'rejected';
+
+  if (docData.status === newStatus) {
+    return { success: true, status: newStatus };
+  }
   await docRef.update({
     status: newStatus,
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
