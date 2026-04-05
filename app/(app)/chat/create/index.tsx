@@ -44,7 +44,7 @@ export default function CreateChatScreen() {
         const profiles = await getUsersByIds(contactUids);
         // Preserve chat-recency order
         const profileMap = new Map(profiles.map((p) => [p.uid, p]));
-        const ordered = contactUids.map((uid) => profileMap.get(uid)).filter(Boolean) as UserProfile[];
+        const ordered = contactUids.map((uid) => profileMap.get(uid)).filter((p): p is UserProfile => !!p && p.role !== 'admin');
         setMyContacts(ordered);
       } else {
         setMyContacts([]);
@@ -58,6 +58,7 @@ export default function CreateChatScreen() {
   useEffect(() => {
     if (!user?.uid || !searchQuery.trim()) {
       setSearchResults([]);
+      setSearching(false);
       return;
     }
     setSearching(true);
@@ -84,11 +85,12 @@ export default function CreateChatScreen() {
       let chatId: string;
       if (selectedUsers.length === 1) {
         chatId = await createDirectChat(user.uid, selectedUsers[0].uid);
+        router.replace(`/chat/${chatId}?name=${encodeURIComponent(selectedUsers[0].displayName)}` as any);
       } else {
-        const name = selectedUsers.map((u) => u.displayName.split(' ')[0]).join(', ');
-        chatId = await createGroupChat(user.uid, selectedUsers.map((u) => u.uid), name);
+        const groupName = 'New Group';
+        chatId = await createGroupChat(user.uid, selectedUsers.map((u) => u.uid), groupName);
+        router.replace(`/chat/${chatId}?name=${encodeURIComponent(groupName)}&isGroup=true` as any);
       }
-      router.replace(`/chat/${chatId}?name=${encodeURIComponent(selectedUsers.length === 1 ? selectedUsers[0].displayName : selectedUsers.map((u) => u.displayName.split(' ')[0]).join(', '))}${selectedUsers.length > 1 ? '&isGroup=true' : ''}` as any);
     } catch (e) {
       console.error('Failed to create chat:', e);
     } finally {

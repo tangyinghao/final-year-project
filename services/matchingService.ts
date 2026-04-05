@@ -13,7 +13,7 @@ export async function getMatchResults(req: MatchRequest): Promise<MatchResponse>
   const candidates: UserProfile[] = [];
   snap.forEach((d) => {
     const u = d.data() as UserProfile;
-    if (u.uid !== req.currentUserId) candidates.push(u);
+    if (u.uid !== req.currentUserId && u.role !== 'admin') candidates.push(u);
   });
 
   // Score each candidate

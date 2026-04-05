@@ -61,7 +61,7 @@ export async function searchUsers(searchText: string, currentUid: string): Promi
   const results: UserProfile[] = [];
   snap.forEach((d) => {
     const u = d.data() as UserProfile;
-    if (u.uid !== currentUid) results.push(u);
+    if (u.uid !== currentUid && u.role !== 'admin') results.push(u);
   });
   return results;
 }

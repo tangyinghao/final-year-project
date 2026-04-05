@@ -1,23 +1,21 @@
-import {
-  collection,
-  doc,
-  addDoc,
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-  serverTimestamp,
-  updateDoc,
-  getDoc,
-  getDocs,
-  limit,
-  Timestamp,
-  arrayUnion,
-  increment,
-} from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/config/firebaseConfig';
 import { Chat, Message } from '@/types';
+import {
+  addDoc,
+  arrayUnion,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  increment,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  updateDoc,
+  where
+} from 'firebase/firestore';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 
 async function uriToBlob(uri: string): Promise<Blob> {
   const response = await fetch(uri);
@@ -25,7 +23,7 @@ async function uriToBlob(uri: string): Promise<Blob> {
   return blob;
 }
 
-// ── Fetch chats where user is a participant ──────────────────────────
+// Fetch chats where user is a participant
 export function subscribeToChats(
   userId: string,
   callback: (chats: Chat[]) => void
@@ -42,7 +40,7 @@ export function subscribeToChats(
   });
 }
 
-// ── Subscribe to messages in a chat ──────────────────────────────────
+// Subscribe to messages in a chat
 export function subscribeToMessages(
   chatId: string,
   callback: (messages: Message[]) => void
@@ -58,7 +56,7 @@ export function subscribeToMessages(
   });
 }
 
-// ── Send a message ───────────────────────────────────────────────────
+// Send a message
 export async function sendMessage(
   chatId: string,
   senderId: string,
@@ -76,7 +74,7 @@ export async function sendMessage(
     readBy: [senderId],
   });
 
-  // Update chat's lastMessage and atomically increment unread count for other participants
+  // Update chat's lastMessage and increment unread count for other participants
   const chatSnap = await getDoc(doc(db, 'chats', chatId));
   const chatData = chatSnap.data();
   const otherParticipants = (chatData?.participants || []).filter((p: string) => p !== senderId);
@@ -97,7 +95,7 @@ export async function sendMessage(
   await updateDoc(doc(db, 'chats', chatId), updates);
 }
 
-// ── Create a direct chat ─────────────────────────────────────────────
+// Create a direct chat
 export async function createDirectChat(
   currentUserId: string,
   otherUserId: string
@@ -132,7 +130,7 @@ export async function createDirectChat(
   return chatDoc.id;
 }
 
-// ── Create a group chat ──────────────────────────────────────────────
+// Create a group chat
 export async function createGroupChat(
   currentUserId: string,
   participantIds: string[],
@@ -156,7 +154,7 @@ export async function createGroupChat(
   return chatDoc.id;
 }
 
-// ── Upload group photo ────────────────────────────────────────────
+// Upload group photo
 export async function uploadGroupPhoto(
   chatId: string,
   imageUri: string
@@ -169,24 +167,29 @@ export async function uploadGroupPhoto(
   return downloadUrl;
 }
 
-// ── Remove group photo ────────────────────────────────────────────
+// Remove group photo
 export async function removeGroupPhoto(chatId: string): Promise<void> {
   await updateDoc(doc(db, 'chats', chatId), { groupPhoto: null });
 }
 
-// ── Get single chat ──────────────────────────────────────────────────
+// Rename group chat
+export async function renameGroupChat(chatId: string, newName: string): Promise<void> {
+  await updateDoc(doc(db, 'chats', chatId), { name: newName });
+}
+
+// Get single chat
 export async function getChat(chatId: string): Promise<Chat | null> {
   const snap = await getDoc(doc(db, 'chats', chatId));
   return snap.exists() ? ({ id: snap.id, ...snap.data() } as Chat) : null;
 }
 
-// ── Get chat participants ────────────────────────────────────────────
+// Get chat participants
 export async function getChatParticipantIds(chatId: string): Promise<string[]> {
   const chat = await getChat(chatId);
   return chat?.participants ?? [];
 }
 
-// ── Mark messages as read ────────────────────────────────────────────
+// Mark messages as read
 export async function markMessagesAsRead(
   chatId: string,
   messageIds: string[],
@@ -199,7 +202,7 @@ export async function markMessagesAsRead(
   }
 }
 
-// ── Mark chat as read for a user ────────────────────────────────────
+// Mark chat as read for a user
 export async function markChatAsRead(
   chatId: string,
   userId: string
@@ -209,7 +212,7 @@ export async function markChatAsRead(
   });
 }
 
-// ── Upload chat image and send as message ───────────────────────────
+// Upload chat image and send as message
 export async function sendImageMessage(
   chatId: string,
   senderId: string,
@@ -235,7 +238,7 @@ export async function sendImageMessage(
     readBy: [senderId],
   });
 
-  // Update chat's lastMessage and atomically increment unread count
+  // Update chat's lastMessage and increment unread count
   const chatSnap = await getDoc(doc(db, 'chats', chatId));
   const chatData = chatSnap.data();
   const otherParticipants = (chatData?.participants || []).filter((p: string) => p !== senderId);
@@ -256,7 +259,7 @@ export async function sendImageMessage(
   await updateDoc(doc(db, 'chats', chatId), updates);
 }
 
-// ── Upload file and send as message ─────────────────────────────────
+// Upload file and send as message
 export async function sendFileMessage(
   chatId: string,
   senderId: string,

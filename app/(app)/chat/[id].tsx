@@ -7,7 +7,7 @@ import { StatusBar } from 'expo-status-bar';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { useAuth } from '@/context/authContext';
-import { subscribeToMessages, sendMessage as sendChatMessage, sendImageMessage, sendFileMessage, getChatParticipantIds, markChatAsRead, getChat, uploadGroupPhoto, removeGroupPhoto } from '@/services/chatService';
+import { subscribeToMessages, sendMessage as sendChatMessage, sendImageMessage, sendFileMessage, getChatParticipantIds, markChatAsRead, getChat, uploadGroupPhoto, removeGroupPhoto, renameGroupChat } from '@/services/chatService';
 import { getUsersByIds } from '@/services/userService';
 import { Message, UserProfile } from '@/types';
 import { DEFAULT_AVATAR } from '@/constants/images';
@@ -26,6 +26,9 @@ export default function ChatDetailScreen() {
   const [groupPhoto, setGroupPhoto] = useState<string | null>(null);
   const [showPhotoMenu, setShowPhotoMenu] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [groupName, setGroupName] = useState<string>((name as string) || 'Group Chat');
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState('');
   const scrollRef = useRef<ScrollView>(null);
 
   const overlayOpacity = useRef(new Animated.Value(0)).current;
@@ -59,8 +62,20 @@ export default function ChatDetailScreen() {
     (async () => {
       const chat = await getChat(chatId);
       if (chat?.groupPhoto) setGroupPhoto(chat.groupPhoto);
+      if (chat?.name) setGroupName(chat.name);
     })();
   }, [chatId, isGroup]);
+
+  const handleRenameGroup = async () => {
+    const trimmed = nameDraft.trim();
+    if (!trimmed || trimmed === groupName) {
+      setEditingName(false);
+      return;
+    }
+    await renameGroupChat(chatId, trimmed);
+    setGroupName(trimmed);
+    setEditingName(false);
+  };
 
   const openGroupInfo = () => {
     overlayOpacity.setValue(0);
@@ -207,8 +222,8 @@ export default function ChatDetailScreen() {
             }
           }}
         >
-          <Text className="text-[18px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
-            {name || 'Chat'}
+          <Text className="text-[18px] font-bold text-black" numberOfLines={1} style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
+            {isGroup === 'true' ? groupName : (name || 'Chat')}
           </Text>
           {isGroup === 'true' && (
             <Text className="text-[11px] text-[#8E8E93]" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>Tap for group info</Text>
@@ -412,8 +427,31 @@ export default function ChatDetailScreen() {
               </View>
 
               <View className="flex-row items-center justify-between mb-2">
-                <Text className="text-[20px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{name}</Text>
-                <TouchableOpacity onPress={closeGroupInfo} className="w-8 h-8 items-center justify-center">
+                {editingName ? (
+                  <View className="flex-1 flex-row items-center mr-2">
+                    <TextInput
+                      className="flex-1 text-[20px] font-bold text-black border-b border-[#1B1C62] py-1"
+                      style={{ fontFamily: 'PlusJakartaSans-Bold' }}
+                      value={nameDraft}
+                      onChangeText={setNameDraft}
+                      autoFocus
+                      maxLength={50}
+                      onSubmitEditing={handleRenameGroup}
+                      returnKeyType="done"
+                    />
+                    <TouchableOpacity onPress={handleRenameGroup} className="ml-2 w-8 h-8 items-center justify-center">
+                      <Ionicons name="checkmark" size={22} color="#1B1C62" />
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <TouchableOpacity className="flex-1 mr-2" onPress={() => { setNameDraft(groupName); setEditingName(true); }}>
+                    <View className="flex-row items-center">
+                      <Text className="text-[20px] font-bold text-black flex-shrink" numberOfLines={1} style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{groupName}</Text>
+                      <Ionicons name="pencil-outline" size={16} color="#8E8E93" style={{ marginLeft: 6 }} />
+                    </View>
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity onPress={closeGroupInfo} className="w-8 h-8 items-center justify-center flex-shrink-0">
                   <Ionicons name="close" size={22} color="#8E8E93" />
                 </TouchableOpacity>
               </View>
