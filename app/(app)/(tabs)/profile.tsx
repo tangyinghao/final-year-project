@@ -1,18 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { Alert, ScrollView, Switch, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
-import { useRouter } from 'expo-router';
-import { DangerOutlineButton } from '@/components/ui/DangerOutlineButton';
 import { ScreenHeader } from '@/components/navigation/ScreenHeader';
 import { FootprintPromoCard } from '@/components/profile/FootprintPromoCard';
 import { ProfileSummaryRow } from '@/components/profile/ProfileSummaryRow';
 import { SettingsRow } from '@/components/profile/SettingsRow';
-import { useAuth } from '@/context/authContext';
-import { registerForPushNotificationsAsync, savePushToken, removePushToken } from '@/services/pushNotificationService';
-import { updateUserProfile } from '@/services/userService';
+import { DangerOutlineButton } from '@/components/ui/DangerOutlineButton';
 import { FEATURE_FLAGS } from '@/constants/featureFlags';
-import { Theme } from '@/constants/theme';
+import { useAuth } from '@/context/authContext';
+import { registerForPushNotificationsAsync, removePushToken, savePushToken } from '@/services/pushNotificationService';
+import { updateUserProfile } from '@/services/userService';
+import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import React, { useEffect, useState } from 'react';
+import { Alert, ScrollView, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const MENU_ITEMS = [
   { icon: 'help-circle-outline', title: 'Help & Support', route: '/profile/help' },
@@ -94,7 +93,7 @@ export default function ProfileScreen() {
               showDivider={true}
             />
           ))}
-          {/* Push Notifications toggle commented out — not supported in Expo Go
+          {/* Push Notifications toggle not supported in Expo Go
           <SettingsRow
             iconName="notifications"
             title="Push Notifications"

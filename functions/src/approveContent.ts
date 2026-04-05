@@ -8,7 +8,7 @@ interface ApproveRequest {
 }
 
 // Admins approve or reject pending content
-export const approveContent = https.onCall(async (request) => {
+export const approveContent = https.onCall({ cors: true }, async (request) => {
   const db = admin.firestore();
 
   // Auth check

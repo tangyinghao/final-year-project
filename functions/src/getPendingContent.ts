@@ -12,7 +12,7 @@ interface GetPendingContentRequest {
  * Retrieves a unified list of content, optionally filtered by status.
  * Defaults to pending-only for backwards compatibility.
  */
-export const getPendingContent = https.onCall(async (request) => {
+export const getPendingContent = https.onCall({ cors: true }, async (request) => {
   await verifyAdmin(request.auth);
 
   const { limit, contentType, statusFilter } = request.data as GetPendingContentRequest;

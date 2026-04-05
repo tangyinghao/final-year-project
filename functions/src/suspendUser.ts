@@ -9,7 +9,7 @@ interface SuspendRequest {
 /**
  * Callable function for admins to suspend or unsuspend a user.
  */
-export const suspendUser = https.onCall(async (request) => {
+export const suspendUser = https.onCall({ cors: true }, async (request) => {
   const db = admin.firestore();
 
   // Auth check

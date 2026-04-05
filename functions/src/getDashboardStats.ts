@@ -5,7 +5,7 @@ import { verifyAdmin } from './adminAuth';
 /**
  * Provides aggregate counts for the admin dashboard.
  */
-export const getDashboardStats = https.onCall(async (request) => {
+export const getDashboardStats = https.onCall({ cors: true }, async (request) => {
   await verifyAdmin(request.auth);
 
   const db = admin.firestore();

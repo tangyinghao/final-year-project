@@ -7,7 +7,7 @@ import { verifyAdmin } from './adminAuth';
  * Firestore rules block client deletes (allow delete: if false),
  * but Admin SDK bypasses rules.
  */
-export const deleteEvent = https.onCall(async (request) => {
+export const deleteEvent = https.onCall({ cors: true }, async (request) => {
   await verifyAdmin(request.auth);
 
   const { eventId } = request.data as { eventId: string };

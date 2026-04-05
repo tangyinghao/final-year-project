@@ -13,7 +13,7 @@ interface GetUsersRequest {
  * Provides a searchable, paginated directory of all users.
  * Mutually exclusive: searchByEmailPrefix and roleFilter are not combined.
  */
-export const getUsers = https.onCall(async (request) => {
+export const getUsers = https.onCall({ cors: true }, async (request) => {
   await verifyAdmin(request.auth);
 
   const { limit, searchByEmailPrefix, roleFilter, lastCursor } = request.data as GetUsersRequest;

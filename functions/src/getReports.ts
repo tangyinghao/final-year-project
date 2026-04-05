@@ -11,7 +11,7 @@ interface GetReportsRequest {
 /**
  * Retrieves a paginated list of user reports.
  */
-export const getReports = https.onCall(async (request) => {
+export const getReports = https.onCall({ cors: true }, async (request) => {
   await verifyAdmin(request.auth);
 
   const { limit, statusFilter, lastCursor } = request.data as GetReportsRequest;

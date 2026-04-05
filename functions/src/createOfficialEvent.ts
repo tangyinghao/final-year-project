@@ -14,7 +14,7 @@ interface CreateOfficialEventRequest {
 /**
  * Allows admins to create official NTU events that bypass moderation.
  */
-export const createOfficialEvent = https.onCall(async (request) => {
+export const createOfficialEvent = https.onCall({ cors: true }, async (request) => {
   const callerUid = await verifyAdmin(request.auth);
 
   const data = request.data as CreateOfficialEventRequest;

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { callGetReports, callUpdateReportStatus } from '../lib/firebase';
 
-type ReportStatus = 'pending' | 'reviewed' | 'actioned' | 'dismissed';
+type ReportStatus = 'pending' | 'actioned' | 'dismissed';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function formatDate(ts: any): string {
@@ -14,7 +14,6 @@ function formatDate(ts: any): string {
 function statusStyle(status: string) {
   switch (status) {
     case 'pending': return 'bg-yellow-100 text-yellow-800';
-    case 'reviewed': return 'bg-blue-100 text-blue-800';
     case 'actioned': return 'bg-green-100 text-green-800';
     case 'dismissed': return 'bg-gray-100 text-gray-600';
     default: return 'bg-gray-100 text-gray-800';
@@ -152,7 +151,6 @@ export function Reports({ initialSelectedId }: ReportsProps) {
             >
               <option value="">All Statuses</option>
               <option value="pending">Pending</option>
-              <option value="reviewed">Reviewed</option>
               <option value="actioned">Actioned</option>
               <option value="dismissed">Dismissed</option>
             </select>

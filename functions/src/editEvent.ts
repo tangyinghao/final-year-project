@@ -14,7 +14,7 @@ const PROTECTED_FIELDS = new Set([
 /**
  * Updates details of an existing event (official or user-created).
  */
-export const editEvent = https.onCall(async (request) => {
+export const editEvent = https.onCall({ cors: true }, async (request) => {
   await verifyAdmin(request.auth);
 
   const { eventId, updates } = request.data as {

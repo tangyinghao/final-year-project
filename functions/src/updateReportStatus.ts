@@ -15,7 +15,7 @@ const VALID_STATUSES = new Set(['actioned', 'dismissed']);
  * Updates the resolution state of a specific report.
  * Optionally suspends the reported user when actioning.
  */
-export const updateReportStatus = https.onCall(async (request) => {
+export const updateReportStatus = https.onCall({ cors: true }, async (request) => {
   const callerUid = await verifyAdmin(request.auth);
 
   const { reportId, newStatus, suspendUser, unsuspendUser } = request.data as UpdateReportStatusRequest;
