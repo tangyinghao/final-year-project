@@ -62,16 +62,6 @@ function App() {
     return <Login />;
   }
 
-  const renderPage = () => {
-    switch (activeTab) {
-      case 'Dashboard': return <Dashboard onNavigate={handleNavigate} />;
-      case 'Review': return <Review initialSelectedId={initialSelectedId} />;
-      case 'Reports': return <Reports initialSelectedId={initialSelectedId} />;
-      case 'Users': return <Users />;
-      default: return <Dashboard onNavigate={handleNavigate} />;
-    }
-  };
-
   return (
     <>
       <Layout
@@ -80,7 +70,18 @@ function App() {
         onLogout={handleLogout}
         onCreateEvent={() => setShowCreateEvent(true)}
       >
-        {renderPage()}
+        <div className={activeTab === 'Dashboard' ? 'flex flex-col h-full' : 'hidden'}>
+          <Dashboard onNavigate={handleNavigate} />
+        </div>
+        <div className={activeTab === 'Review' ? 'flex flex-col h-full' : 'hidden'}>
+          <Review initialSelectedId={initialSelectedId} />
+        </div>
+        <div className={activeTab === 'Reports' ? 'flex flex-col h-full' : 'hidden'}>
+          <Reports initialSelectedId={initialSelectedId} />
+        </div>
+        <div className={activeTab === 'Users' ? 'flex flex-col h-full' : 'hidden'}>
+          <Users />
+        </div>
       </Layout>
       {showCreateEvent && (
         <CreateEventModal onClose={() => setShowCreateEvent(false)} />
