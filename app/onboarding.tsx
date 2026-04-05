@@ -111,6 +111,7 @@ export default function OnboardingScreen() {
                     className="border border-border-default rounded-xl px-4 py-3 text-[16px] text-black bg-white"
                     style={{ fontFamily: 'PlusJakartaSans-Regular', textAlignVertical: 'top', minHeight: 100 }}
                     placeholder="Tell others a bit about yourself..."
+                    placeholderTextColor="#999"
                     value={bio}
                     onChangeText={setBio}
                     multiline
