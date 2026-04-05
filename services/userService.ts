@@ -30,10 +30,12 @@ export async function updateUserProfile(
   uid: string,
   data: Partial<Pick<UserProfile, 'displayName' | 'bio' | 'programme' | 'graduationYear' | 'interests' | 'profilePhoto' | 'notificationsEnabled' | 'onboarded'>>
 ): Promise<void> {
-  await updateDoc(doc(db, 'users', uid), {
-    ...data,
-    updatedAt: serverTimestamp(),
-  });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const update: any = { ...data, updatedAt: serverTimestamp() };
+  if (data.displayName) {
+    update.displayNameLower = data.displayName.toLowerCase();
+  }
+  await updateDoc(doc(db, 'users', uid), update);
 }
 
 export async function uploadProfilePhoto(uid: string, uri: string): Promise<string> {
@@ -46,30 +48,14 @@ export async function uploadProfilePhoto(uid: string, uri: string): Promise<stri
 }
 
 export async function searchUsers(searchText: string, currentUid: string): Promise<UserProfile[]> {
-  // Firestore fetch active users and filter client-side
-  const q = query(
-    collection(db, 'users'),
-    where('status', '==', 'active'),
-    orderBy('displayName'),
-    limit(50)
-  );
-  const snap = await getDocs(q);
-  const results: UserProfile[] = [];
   const lower = searchText.toLowerCase();
-  snap.forEach((d) => {
-    const u = d.data() as UserProfile;
-    if (u.uid !== currentUid && u.displayName.toLowerCase().includes(lower)) {
-      results.push(u);
-    }
-  });
-  return results;
-}
-
-export async function getAllActiveUsers(currentUid: string): Promise<UserProfile[]> {
   const q = query(
     collection(db, 'users'),
     where('status', '==', 'active'),
-    limit(100)
+    where('displayNameLower', '>=', lower),
+    where('displayNameLower', '<=', lower + '\uf8ff'),
+    orderBy('displayNameLower'),
+    limit(20)
   );
   const snap = await getDocs(q);
   const results: UserProfile[] = [];

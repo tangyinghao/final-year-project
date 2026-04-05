@@ -98,6 +98,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
         uid,
         email,
         displayName,
+        displayNameLower: displayName.toLowerCase(),
         role,
         profilePhoto: null,
         programme: '',

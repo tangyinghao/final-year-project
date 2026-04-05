@@ -16,6 +16,7 @@ export const onUserCreate = auth.user().onCreate(async (user: admin.auth.UserRec
     uid: user.uid,
     email: user.email || '',
     displayName: user.displayName || '',
+    displayNameLower: (user.displayName || '').toLowerCase(),
     role: 'student',
     profilePhoto: null,
     programme: '',

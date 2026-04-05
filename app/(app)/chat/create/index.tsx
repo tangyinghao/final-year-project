@@ -9,34 +9,62 @@ import { SelectableUserRow } from '@/components/chat/SelectableUserRow';
 import { SmartMatchBanner } from '@/components/chat/SmartMatchBanner';
 import { SectionLabel } from '@/components/ui/SectionLabel';
 import { useAuth } from '@/context/authContext';
-import { getAllActiveUsers, searchUsers } from '@/services/userService';
-import { createDirectChat, createGroupChat } from '@/services/chatService';
+import { searchUsers, getUsersByIds } from '@/services/userService';
+import { createDirectChat, createGroupChat, subscribeToChats } from '@/services/chatService';
 import { UserProfile } from '@/types';
 import { Theme } from '@/constants/theme';
 
 export default function CreateChatScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const [contacts, setContacts] = useState<UserProfile[]>([]);
+  const [myContacts, setMyContacts] = useState<UserProfile[]>([]);
+  const [searchResults, setSearchResults] = useState<UserProfile[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<UserProfile[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [searching, setSearching] = useState(false);
   const [creating, setCreating] = useState(false);
 
+  // Load "Your Contacts" from chat history
   useEffect(() => {
     if (!user?.uid) return;
-    (async () => {
-      const users = await getAllActiveUsers(user.uid);
-      setContacts(users);
+    const unsub = subscribeToChats(user.uid, async (chats) => {
+      // Extract unique participant UIDs in chat-recency order
+      const seen = new Set<string>();
+      const contactUids: string[] = [];
+      for (const chat of chats) {
+        for (const pid of chat.participants) {
+          if (pid !== user.uid && !seen.has(pid)) {
+            seen.add(pid);
+            contactUids.push(pid);
+          }
+        }
+      }
+      if (contactUids.length > 0) {
+        const profiles = await getUsersByIds(contactUids);
+        // Preserve chat-recency order
+        const profileMap = new Map(profiles.map((p) => [p.uid, p]));
+        const ordered = contactUids.map((uid) => profileMap.get(uid)).filter(Boolean) as UserProfile[];
+        setMyContacts(ordered);
+      } else {
+        setMyContacts([]);
+      }
       setLoading(false);
-    })();
+    });
+    return unsub;
   }, [user?.uid]);
 
+  // Search users globally by name
   useEffect(() => {
-    if (!user?.uid || !searchQuery.trim()) return;
+    if (!user?.uid || !searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    setSearching(true);
     const timeout = setTimeout(async () => {
       const results = await searchUsers(searchQuery.trim(), user.uid);
-      setContacts(results);
+      setSearchResults(results);
+      setSearching(false);
     }, 300);
     return () => clearTimeout(timeout);
   }, [searchQuery, user?.uid]);
@@ -107,12 +135,12 @@ export default function CreateChatScreen() {
         />
 
         <View className="pt-2">
-          <SectionLabel label={searchQuery ? 'Results' : 'Suggested Contacts'} className="px-5 mb-2" />
+          <SectionLabel label={searchQuery ? 'Results' : 'Your Contacts'} className="px-5 mb-2" />
 
-          {loading ? (
+          {loading || searching ? (
             <ActivityIndicator style={{ marginTop: 20 }} color={Theme.colors.brand.primary} />
           ) : (
-            contacts.map((u) => {
+            (searchQuery ? searchResults : myContacts).map((u: UserProfile) => {
               const isSelected = selectedUsers.some((s) => s.uid === u.uid);
               return (
                 <SelectableUserRow
@@ -127,10 +155,10 @@ export default function CreateChatScreen() {
             })
           )}
 
-          {!loading && contacts.length === 0 ? (
+          {!loading && !searching && (searchQuery ? searchResults : myContacts).length === 0 ? (
             <View className="items-center pt-10">
-              <Text className="text-[15px] text-text-muted" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>
-                No contacts found.
+              <Text className="text-[15px] text-text-muted text-center px-8 leading-5" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>
+                {searchQuery ? 'No users found.' : 'No contacts yet. Use Smart Match or search to find people.'}
               </Text>
             </View>
           ) : null}

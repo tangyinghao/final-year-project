@@ -5,14 +5,16 @@
  *   node scripts/seedFirestore.js
  *
  * Created Content:
- *   - 22 Auth users  (2 admins, 20 students/alumni)
- *   - 22 user docs   in  users/
+ *   - 22 users  (2 admins, 20 students/alumni)
  *   - 2 group chats  in  chats/   with messages
  *   - 10 direct chats per user    with messages
  *   - 4 official events  in events/
  *   - 10 user-created events in events/
+ *   - 2 pending events in events/
  *   - 10 jobs in jobs/
+ *   - 2 pending jobs in jobs/
  *   - 10 mentorships in mentorships/
+ *   - 2 pending mentorships in mentorships/
  *
  * All test users share the password: Test1234!
  */
@@ -33,12 +35,12 @@ const FieldValue = admin.firestore.FieldValue;
 
 const PASSWORD = 'Test1234!';
 
-// Users
+// 22 Users
 const USERS = [
-  // Admins
+  // 2 Admins
   { email: 'admin1@test.com', displayName: 'Dr. Sarah Wong', role: 'admin', programme: '', graduationYear: null, interests: [], bio: 'MSCircle system administrator and EEE faculty.', profilePhoto: 'https://i.pravatar.cc/300?u=admin1-mscircle' },
   { email: 'admin2@test.com', displayName: 'James Ong', role: 'admin', programme: '', graduationYear: null, interests: [], bio: 'Student affairs coordinator and platform admin.', profilePhoto: 'https://i.pravatar.cc/300?u=admin2-mscircle' },
-  // Students
+  // 20 Students
   { email: 'alice@test.com', displayName: 'Alice Tan', role: 'student', programme: 'Electrical & Electronic Engineering', graduationYear: null, interests: ['AI', 'Robotics', 'IoT'], bio: 'Year 3 EEE student passionate about embedded systems.', profilePhoto: 'https://i.pravatar.cc/300?u=alice-mscircle' },
   { email: 'bob@test.com', displayName: 'Bob Lim', role: 'alumni', programme: 'Electrical & Electronic Engineering', graduationYear: 2023, interests: ['Power Systems', 'Renewable Energy', 'Mentoring'], bio: 'EEE alumni working at Schneider Electric. Happy to mentor!', profilePhoto: 'https://i.pravatar.cc/300?u=bob-mscircle' },
   { email: 'carol@test.com', displayName: 'Carol Chen', role: 'student', programme: 'Computer Engineering', graduationYear: null, interests: ['AI', 'Web Development', 'Startups'], bio: 'Year 2 CE student interested in AI startups.', profilePhoto: 'https://i.pravatar.cc/300?u=carol-mscircle' },
@@ -129,7 +131,7 @@ async function deleteAuthUsers() {
 async function seed() {
   console.log('\n=== Seeding Firebase ===\n');
 
-  // 0. Clean slate
+  // Clean slate
   console.log('0. Cleaning existing data...');
   await deleteCollection('notifications');
   await deleteCollection('reports');
@@ -141,7 +143,7 @@ async function seed() {
   await deleteAuthUsers();
   console.log('  Clean slate ready!\n');
 
-  // 1. Create users
+  // Create users
   console.log('1. Creating users...');
   const uidMap = {};
   for (const u of USERS) {
@@ -153,6 +155,7 @@ async function seed() {
         uid,
         email: u.email,
         displayName: u.displayName,
+        displayNameLower: u.displayName.toLowerCase(),
         role: u.role,
         profilePhoto: u.profilePhoto,
         programme: u.programme,
@@ -181,7 +184,7 @@ async function seed() {
   // Helper to get display name from uid
   const nameOf = (uid) => USERS.find((u) => uidMap[u.email] === uid)?.displayName || 'Unknown';
 
-  // 2. Official events (4)
+  // 4 Official events
   console.log('\n2. Creating official events...');
   const officialEvents = [
     { title: 'EEE Industry Night 2026', description: 'Annual networking event connecting EEE students with industry professionals. Guest speakers from Dyson, ST Engineering, and more.', date: new Date('2026-04-15T18:00:00'), location: 'LT1, NTU North Spine', coverImage: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=400&fit=crop', maxCapacity: 200 },
@@ -209,7 +212,7 @@ async function seed() {
     console.log(`  Official event: ${evt.title}`);
   }
 
-  // 3. User-created events (10) 
+  // 10 User-created events
   console.log('\n3. Creating user events...');
   const userEvents = [
     { title: 'Arduino Workshop for Beginners', description: 'Hands-on workshop to build your first IoT project with Arduino. All materials provided!', date: new Date('2026-04-20T14:00:00'), location: 'Hardware Lab 2, S2-B4a', maxCapacity: 30 },
@@ -246,7 +249,37 @@ async function seed() {
     console.log(`  User event: ${evt.title} (by ${creator.displayName})`);
   }
 
-  // 4. Jobs (10) 
+  // 2 Pending events
+  console.log('\n3b. Creating pending events...');
+  const pendingEvents = [
+    { title: 'IoT Hackathon Weekend', description: 'Build an IoT prototype in 48 hours. Teams of 3-5. Prizes sponsored by Arduino Singapore.', date: new Date('2026-06-01T09:00:00'), location: 'Innovation Centre, NTU', maxCapacity: 50, creator: 'alice@test.com' },
+    { title: 'EEE Alumni Networking Dinner', description: 'Casual dinner for EEE alumni to reconnect and share career experiences.', date: new Date('2026-06-15T19:00:00'), location: 'Orchard Hotel, Singapore', maxCapacity: 40, creator: 'bob@test.com' },
+  ];
+
+  for (const evt of pendingEvents) {
+    const creatorUid = uidMap[evt.creator];
+    const creatorName = USERS.find(u => u.email === evt.creator).displayName;
+    const ref = db.collection('events').doc();
+    await ref.set({
+      title: evt.title,
+      description: evt.description,
+      date: evt.date,
+      location: evt.location,
+      maxCapacity: evt.maxCapacity,
+      type: 'user-created',
+      status: 'pending',
+      coverImage: null,
+      createdBy: creatorUid,
+      creatorName,
+      attendees: [creatorUid],
+      attendeeCount: 1,
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+    console.log(`  Pending event: ${evt.title} (by ${creatorName})`);
+  }
+
+  // 10 Jobs
   console.log('\n4. Creating jobs...');
   const SPECIALISATIONS = ['Communications', 'Computer Control', 'Electronics', 'Power Engineering', 'Signal Processing'];
   const jobListings = [
@@ -278,7 +311,34 @@ async function seed() {
     console.log(`  Job: ${job.title} at ${job.company}`);
   }
 
-  // 5. Mentorships (10) 
+  // 2 Pending jobs
+  console.log('\n4b. Creating pending jobs...');
+  const pendingJobs = [
+    { title: 'Research Intern — AI for Robotics', company: 'NTU EEE Lab', description: 'Assist in developing ML models for robotic manipulation. Python and PyTorch required.', location: 'NTU', tags: ['AI', 'Robotics'], poster: 'alice@test.com' },
+    { title: 'Part-time Power Systems Tutor', company: 'Schneider Electric', description: 'Tutor junior EEE students in power systems fundamentals. Flexible hours.', location: 'Singapore', tags: ['Power Engineering'], poster: 'bob@test.com' },
+  ];
+
+  for (const job of pendingJobs) {
+    const posterUid = uidMap[job.poster];
+    const posterName = USERS.find(u => u.email === job.poster).displayName;
+    const ref = db.collection('jobs').doc();
+    await ref.set({
+      title: job.title,
+      company: job.company,
+      description: job.description,
+      location: job.location,
+      tags: job.tags,
+      type: 'job',
+      postedBy: posterUid,
+      posterName,
+      status: 'pending',
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+    console.log(`  Pending job: ${job.title} (by ${posterName})`);
+  }
+
+  // 10 Mentorships
   console.log('\n5. Creating mentorships...');
   const mentorshipListings = [
     { title: 'Power Systems & Renewable Energy Mentor', expertise: ['Power Engineering'], availability: 'Weekends, 2 hours/week' },
@@ -315,7 +375,34 @@ async function seed() {
     console.log(`  Mentorship: ${ml.title} (${mentor.displayName})`);
   }
 
-  // 6. Group chats (2)
+  // 2 Pending mentorships
+  console.log('\n5b. Creating pending mentorships...');
+  const pendingMentorships = [
+    { title: 'Renewable Energy Career Guidance', expertise: ['Power Engineering', 'Renewable Energy'], availability: 'Weekday evenings, 1 hour', poster: 'bob@test.com' },
+  ];
+
+  for (const ml of pendingMentorships) {
+    const mentorUid = uidMap[ml.poster];
+    const mentorName = USERS.find(u => u.email === ml.poster).displayName;
+    const ref = db.collection('mentorships').doc();
+    await ref.set({
+      title: ml.title,
+      mentorId: mentorUid,
+      mentorName,
+      company: '',
+      description: `I can mentor students interested in ${ml.expertise.join(', ').toLowerCase()} topics. Happy to share my industry experience.`,
+      expertise: ml.expertise,
+      availability: ml.availability,
+      location: 'Singapore / Online',
+      tags: ml.expertise,
+      status: 'pending',
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+    console.log(`  Pending mentorship: ${ml.title} (by ${mentorName})`);
+  }
+
+  // 2 Group chats
   console.log('\n6. Creating group chats...');
 
   const groupChats = [
@@ -369,7 +456,7 @@ async function seed() {
     console.log(`  Group chat: ${gc.name} (${gc.participants.length} members, ${conv.length} messages)`);
   }
 
-  // 7. Direct chats (10 per non-admin user)
+  // 10 Direct chats
   console.log('\n7. Creating direct chats...');
 
   const directMessageTemplates = [
