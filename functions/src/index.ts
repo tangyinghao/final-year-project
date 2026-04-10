@@ -7,7 +7,6 @@ export { syncCohortMembership } from './syncCohortMembership';
 export { onReportCreate } from './onReportCreate';
 export { approveContent } from './approveContent';
 export { suspendUser } from './suspendUser';
-export { onNewMessage } from './onNewMessage';
 
 // Admin portal MVP
 export { getDashboardStats } from './getDashboardStats';
@@ -22,9 +21,5 @@ export { deleteEvent } from './deleteEvent';
 // Smart Match discovery
 export { getDiscoveryResults } from './getDiscoveryResults';
 export { getGroupDiscoveryResults } from './getGroupDiscoveryResults';
-export { sendChatRequest } from './sendChatRequest';
-export { respondChatRequest } from './respondChatRequest';
-export { sendGroupJoinRequest } from './sendGroupJoinRequest';
-export { respondGroupJoinRequest } from './respondGroupJoinRequest';
 export { joinGroup } from './joinGroup';
 export { leaveGroup } from './leaveGroup';

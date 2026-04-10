@@ -163,23 +163,6 @@ export interface Report {
   reviewedBy: string | null;
 }
 
-//  Notification 
-export type NotificationType = 'message' | 'event' | 'approval' | 'report' | 'system';
-
-export interface AppNotification {
-  id: string;
-  userId: string;
-  type: NotificationType;
-  title: string;
-  body: string;
-  data: {
-    route: string;
-    [key: string]: string;
-  };
-  read: boolean;
-  createdAt: Timestamp;
-}
-
 //  Saved Items 
 export interface SavedItem {
   itemId: string;
@@ -199,34 +182,6 @@ export interface FootprintCheckin {
 
 //  Smart Match Discovery
 export type MatchPurpose = 'friends' | 'study' | 'networking' | 'mentorship' | 'mixed';
-
-export type ChatRequestStatus = 'pending' | 'accepted' | 'declined' | 'cancelled';
-
-export interface ChatRequest {
-  id: string;
-  senderId: string;
-  senderName: string;
-  recipientId: string;
-  recipientName: string;
-  introNote: string | null;
-  status: ChatRequestStatus;
-  chatId: string | null;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
-}
-
-export type GroupJoinRequestStatus = 'pending' | 'approved' | 'declined' | 'cancelled';
-
-export interface GroupJoinRequest {
-  id: string;
-  userId: string;
-  userName: string;
-  chatId: string;
-  groupName: string;
-  status: GroupJoinRequestStatus;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
-}
 
 export interface DiscoveryResult {
   userId: string;
