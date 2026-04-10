@@ -1,30 +1,15 @@
-import { auth } from 'firebase-functions';
-import * as admin from 'firebase-admin';
+import * as functions from 'firebase-functions/v1';
 
 /**
- * Creates a fallback Firestore user profile when a Firebase Auth user is created.
- * Does not overwrite existing docs (client or admin tooling may write first).
+ * Runs when a Firebase Auth user is created.
+ *
+ * We intentionally do NOT create a Firestore user doc here.
+ * The client app creates it during registration with the full profile
+ * (role, graduationYear, etc.). Creating it here would race with the
+ * client write, and Firestore security rules block the client from
+ * overwriting fields like `createdAt` and `role`: causing the client
+ * write to fail silently and leaving the doc without a graduationYear.
  */
-export const onUserCreate = auth.user().onCreate(async (user: admin.auth.UserRecord) => {
-  const db = admin.firestore();
-  const userRef = db.collection('users').doc(user.uid);
-  const snap = await userRef.get();
-
-  if (snap.exists) return; // client already created the doc during registration
-
-  await userRef.set({
-    uid: user.uid,
-    email: user.email || '',
-    displayName: user.displayName || '',
-    displayNameLower: (user.displayName || '').toLowerCase(),
-    role: 'student',
-    profilePhoto: null,
-    programme: '',
-    graduationYear: null,
-    interests: [],
-    bio: '',
-    status: 'active',
-    createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-  });
+export const onUserCreate = functions.auth.user().onCreate(async (user) => {
+  functions.logger.info(`Auth user created: ${user.uid} (${user.email})`);
 });

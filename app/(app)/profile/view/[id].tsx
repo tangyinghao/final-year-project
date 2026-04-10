@@ -97,6 +97,19 @@ export default function UserProfileViewScreen() {
               </View>
             </>
           )}
+
+          {profile?.languages && profile.languages.length > 0 && (
+            <>
+              <Text className="text-[18px] font-bold text-black mb-4" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Languages</Text>
+              <View className="flex-row flex-wrap mb-8">
+                {profile.languages.map((lang) => (
+                  <View key={lang} className="bg-[#F6F6F6] border border-[#E5E5EA] px-4 py-2 rounded-full mr-3 mb-3">
+                    <Text className="text-[14px] text-[#333333]" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>{lang}</Text>
+                  </View>
+                ))}
+              </View>
+            </>
+          )}
         </View>
       </ScrollView>
 

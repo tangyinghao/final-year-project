@@ -1,5 +1,5 @@
 import React, { useRef, useState, useCallback } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Image, Alert, ActivityIndicator, Pressable } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Image, Alert, ActivityIndicator, Pressable, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,7 +17,36 @@ export default function EditProfileScreen() {
   const [bio, setBio] = useState(user?.bio || '');
   const [gradYear, setGradYear] = useState(user?.graduationYear?.toString() || '');
   const [major, setMajor] = useState(user?.programme || '');
+  const [languages, setLanguages] = useState<string[]>(user?.languages || []);
+  const [interests, setInterests] = useState<string[]>(user?.interests || []);
+  const [matchingEnabled, setMatchingEnabled] = useState(user?.matchingEnabled ?? false);
   const [saving, setSaving] = useState(false);
+
+  const LANGUAGE_SUGGESTIONS = ['English', 'Mandarin', 'Malay', 'Tamil', 'Hindi'];
+  const INTEREST_SUGGESTIONS = [
+    'Signal Processing', 'Machine Learning', 'IoT', 'Power Systems',
+    'Renewable Energy', '5G', 'IC Design', 'VLSI', 'ASIC', 'Communications',
+    'RF Design', 'Computer Control', 'Automation', 'Microelectronics',
+    'Semiconductors', 'Green Electronics', 'Robotics', 'Networking',
+    'Mentoring', 'EVs', 'Battery', 'Antenna Design', 'Sensors', 'FPGA',
+    'Firmware', 'Audio', 'Radar', 'RTOS',
+  ];
+
+  const toggleInterest = (interest: string) => {
+    if (interests.includes(interest)) {
+      setInterests(interests.filter((i) => i !== interest));
+    } else {
+      setInterests([...interests, interest]);
+    }
+  };
+
+  const toggleLanguage = (lang: string) => {
+    if (languages.includes(lang)) {
+      setLanguages(languages.filter((l) => l !== lang));
+    } else {
+      setLanguages([...languages, lang]);
+    }
+  };
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [photoRemoved, setPhotoRemoved] = useState(false);
   const [showPhotoSheet, setShowPhotoSheet] = useState(false);
@@ -76,6 +105,9 @@ export default function EditProfileScreen() {
         programme: major.trim(),
         graduationYear: gradYear ? parseInt(gradYear) : null,
         profilePhoto: profilePhotoUrl,
+        languages,
+        interests,
+        matchingEnabled,
       });
       await refreshUserProfile();
       Alert.alert('Profile Saved', 'Your profile details have been updated.');
@@ -125,16 +157,16 @@ export default function EditProfileScreen() {
             </View>
           </View>
 
-          <Text className="px-4 text-[13px] text-[#8E8E93] uppercase mb-2" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>NTU Academic Info</Text>
+          <Text className="px-4 text-[13px] text-[#8E8E93] uppercase mb-2" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>MSc EEE Info</Text>
           <View className="bg-white border-y border-[#E5E5EA] mb-8">
             <View className="flex-row items-center px-4 py-3 border-b border-[#E5E5EA]">
-              <Text className="w-24 text-[16px] text-black" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>Major</Text>
+              <Text className="w-24 text-[16px] text-black" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>Pathway</Text>
               <TextInput
                 className="flex-1 text-black"
                 style={{ fontFamily: 'PlusJakartaSans-Regular', fontSize: 16, paddingLeft: 8, includeFontPadding: false }}
                 value={major}
                 onChangeText={setMajor}
-                placeholder="e.g. Computer Science"
+                placeholder="e.g. Signal Processing & Machine Learning"
                 selection={undefined}
                 onLayout={(e) => {
                   // Force scroll to start on Android so first letter isn't clipped
@@ -149,6 +181,61 @@ export default function EditProfileScreen() {
             <View className="flex-row items-center px-4 py-3">
               <Text className="w-24 text-[16px] text-black" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>Class of</Text>
               <TextInput className="flex-1 text-[16px] text-black pl-2" style={{ fontFamily: 'PlusJakartaSans-Regular' }} value={gradYear} onChangeText={setGradYear} keyboardType="numeric" placeholder="e.g. 2024" />
+            </View>
+          </View>
+
+          <Text className="px-4 text-[13px] text-[#8E8E93] uppercase mb-2" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>Languages</Text>
+          <View className="bg-white border-y border-[#E5E5EA] mb-6 px-4 py-3">
+            <View className="flex-row flex-wrap gap-2">
+              {LANGUAGE_SUGGESTIONS.map((lang) => {
+                const isSelected = languages.includes(lang);
+                return (
+                  <TouchableOpacity
+                    key={lang}
+                    className={`px-4 py-2 rounded-full border ${isSelected ? 'bg-[#1B1C62] border-[#1B1C62]' : 'bg-[#F6F6F6] border-[#F6F6F6]'}`}
+                    onPress={() => toggleLanguage(lang)}
+                  >
+                    <Text className={`text-[14px] ${isSelected ? 'text-white' : 'text-black'}`} style={{ fontFamily: 'PlusJakartaSans-Medium' }}>{lang}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+
+          <Text className="px-4 text-[13px] text-[#8E8E93] uppercase mb-2" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>Interests</Text>
+          <View className="bg-white border-y border-[#E5E5EA] mb-6 px-4 py-3">
+            <View className="flex-row flex-wrap gap-2">
+              {INTEREST_SUGGESTIONS.map((interest) => {
+                const isSelected = interests.includes(interest);
+                return (
+                  <TouchableOpacity
+                    key={interest}
+                    className={`px-4 py-2 rounded-full border ${isSelected ? 'bg-[#1B1C62] border-[#1B1C62]' : 'bg-[#F6F6F6] border-[#F6F6F6]'}`}
+                    onPress={() => toggleInterest(interest)}
+                  >
+                    <Text className={`text-[14px] ${isSelected ? 'text-white' : 'text-black'}`} style={{ fontFamily: 'PlusJakartaSans-Medium' }}>{interest}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+
+          <Text className="px-4 text-[13px] text-[#8E8E93] uppercase mb-2" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>Smart Match</Text>
+          <View className="bg-surface-info border-y border-border-info mb-8 px-4 py-3">
+            <View className="flex-row items-center justify-between">
+              <View className="flex-1 mr-4">
+                <View className="flex-row items-center">
+                  <Ionicons name="sparkles" size={16} color="#1B1C62" />
+                  <Text className="text-[16px] text-ntu-primary ml-1.5" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>Enable Discovery</Text>
+                </View>
+                <Text className="text-[13px] text-[#8E8E93] mt-0.5" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>Let others discover you based on your profile.</Text>
+              </View>
+              <Switch
+                value={matchingEnabled}
+                onValueChange={setMatchingEnabled}
+                trackColor={{ false: '#E5E5EA', true: '#1B1C62' }}
+                thumbColor="white"
+              />
             </View>
           </View>
         </ScrollView>

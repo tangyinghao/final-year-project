@@ -1,17 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Dimensions, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { StatusBar } from 'expo-status-bar';
-import Svg, { Path, Text as SvgText } from 'react-native-svg';
+import { NTU_TOTAL_ZONES, NTU_VIEWBOX, NTU_ZONES } from '@/constants/ntuZones';
+import { SG_TOTAL_ZONES, SG_VIEWBOX, SG_ZONES } from '@/constants/sgZones';
 import { useAuth } from '@/context/authContext';
-import { getCheckins, checkIn, uncheckIn } from '@/services/footprintService';
+import { checkIn, getCheckins, uncheckIn } from '@/services/footprintService';
 import { FootprintCheckin, FootprintMapType } from '@/types';
-import { NTU_ZONES, NTU_TOTAL_ZONES, NTU_VIEWBOX } from '@/constants/ntuZones';
-import { SG_ZONES, SG_TOTAL_ZONES, SG_VIEWBOX } from '@/constants/sgZones';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Dimensions, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { G, Path, Text as SvgText } from 'react-native-svg';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const SVG_WIDTH = SCREEN_WIDTH - 32;
+const MIN_SCALE = 1;
+const MAX_SCALE = 5;
 
 const getRank = (count: number, total: number) => {
   const pct = count / total;
@@ -40,6 +44,13 @@ export default function FootprintMapScreen() {
   const [ntuCheckins, setNtuCheckins] = useState<FootprintCheckin[]>([]);
   const [sgCheckins, setSgCheckins] = useState<FootprintCheckin[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mapTransform, setMapTransform] = useState({ scale: 1, translateX: 0, translateY: 0 });
+  const savedScale = useRef(1);
+  const savedTranslateX = useRef(0);
+  const savedTranslateY = useRef(0);
+  const liveScale = useRef(1);
+  const liveTranslateX = useRef(0);
+  const liveTranslateY = useRef(0);
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -65,6 +76,79 @@ export default function FootprintMapScreen() {
   const viewBox = activeTab === 'ntu' ? NTU_VIEWBOX : SG_VIEWBOX;
   const checkedInIds = new Set(checkins.map((c) => c.zoneId));
   const progressPct = Math.round((checkins.length / totalZones) * 100);
+
+  // Reset zoom when switching tabs
+  useEffect(() => {
+    setMapTransform({ scale: 1, translateX: 0, translateY: 0 });
+    savedScale.current = 1;
+    savedTranslateX.current = 0;
+    savedTranslateY.current = 0;
+    liveScale.current = 1;
+    liveTranslateX.current = 0;
+    liveTranslateY.current = 0;
+  }, [activeTab]);
+
+  // Compute SVG height from viewBox aspect ratio
+  const [, , vbW, vbH] = viewBox.split(' ').map(Number);
+  const svgHeight = SVG_WIDTH * (vbH / vbW);
+  const svgUnitsPerPixelX = vbW / SVG_WIDTH;
+  const svgUnitsPerPixelY = vbH / svgHeight;
+
+  const pinchGesture = Gesture.Pinch()
+    .runOnJS(true)
+    .onUpdate((e) => {
+      const nextScale = Math.min(Math.max(savedScale.current * e.scale, MIN_SCALE), MAX_SCALE);
+      const scaleRatio = nextScale / savedScale.current;
+      const focalX = e.focalX * svgUnitsPerPixelX;
+      const focalY = e.focalY * svgUnitsPerPixelY;
+      const nextTranslateX = focalX - (focalX - savedTranslateX.current) * scaleRatio;
+      const nextTranslateY = focalY - (focalY - savedTranslateY.current) * scaleRatio;
+      liveScale.current = nextScale;
+      liveTranslateX.current = nextTranslateX;
+      liveTranslateY.current = nextTranslateY;
+
+      setMapTransform({
+        scale: nextScale,
+        translateX: nextTranslateX,
+        translateY: nextTranslateY,
+      });
+    })
+    .onEnd(() => {
+      savedScale.current = liveScale.current;
+      savedTranslateX.current = liveTranslateX.current;
+      savedTranslateY.current = liveTranslateY.current;
+    });
+
+  const panGesture = Gesture.Pan()
+    .runOnJS(true)
+    .onUpdate((e) => {
+      const nextTranslateX = savedTranslateX.current + e.translationX * svgUnitsPerPixelX;
+      const nextTranslateY = savedTranslateY.current + e.translationY * svgUnitsPerPixelY;
+      liveTranslateX.current = nextTranslateX;
+      liveTranslateY.current = nextTranslateY;
+      setMapTransform((current) => ({
+        ...current,
+        translateX: nextTranslateX,
+        translateY: nextTranslateY,
+      }));
+    })
+    .onEnd(() => {
+      savedTranslateX.current = liveTranslateX.current;
+      savedTranslateY.current = liveTranslateY.current;
+    });
+
+  const doubleTapGesture = Gesture.Tap()
+    .runOnJS(true)
+    .numberOfTaps(2)
+    .onEnd(() => {
+      setMapTransform({ scale: 1, translateX: 0, translateY: 0 });
+      savedScale.current = 1;
+      savedTranslateX.current = 0;
+      savedTranslateY.current = 0;
+    });
+
+  const composed = Gesture.Simultaneous(pinchGesture, panGesture, doubleTapGesture);
+  const mapTransformString = `matrix(${mapTransform.scale} 0 0 ${mapTransform.scale} ${mapTransform.translateX} ${mapTransform.translateY})`;
 
   const handleZonePress = async (zoneId: string, zoneName: string) => {
     if (!user?.uid) return;
@@ -133,39 +217,44 @@ export default function FootprintMapScreen() {
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
           {/* SVG Map */}
           <View className="mx-4 mt-2 bg-[#F8FAFF] rounded-2xl border border-[#E5E5EA] overflow-hidden">
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} bounces={false}>
-              <Svg
-                width={Math.max(SCREEN_WIDTH - 32, 380)}
-                height={activeTab === 'ntu' ? 420 : 320}
-                viewBox={viewBox}
-              >
-                {zones.map((zone) => {
-                  const isCheckedIn = checkedInIds.has(zone.id);
-                  return (
-                    <React.Fragment key={zone.id}>
-                      <Path
-                        d={zone.path}
-                        fill={isCheckedIn ? '#1B1C62' : '#E8EDF5'}
-                        stroke={isCheckedIn ? '#0F1147' : '#C4CDDF'}
-                        strokeWidth={1.5}
-                        onPress={() => handleZonePress(zone.id, zone.name)}
-                      />
-                      <SvgText
-                        x={zone.labelX}
-                        y={zone.labelY}
-                        fontSize={activeTab === 'ntu' ? 8 : 7}
-                        fill={isCheckedIn ? '#FFFFFF' : '#5A6478'}
-                        textAnchor="middle"
-                        fontWeight="bold"
-                        onPress={() => handleZonePress(zone.id, zone.name)}
-                      >
-                        {zone.shortName}
-                      </SvgText>
-                    </React.Fragment>
-                  );
-                })}
-              </Svg>
-            </ScrollView>
+            <GestureHandlerRootView>
+              <GestureDetector gesture={composed}>
+                <Svg
+                  width={SVG_WIDTH}
+                  height={svgHeight}
+                  viewBox={viewBox}
+                >
+                  <G transform={mapTransformString}>
+                    {zones.map((zone) => {
+                      const isCheckedIn = checkedInIds.has(zone.id);
+                      return (
+                        <React.Fragment key={zone.id}>
+                          <Path
+                            d={zone.path}
+                            fill={isCheckedIn ? '#1B1C62' : '#E8EDF5'}
+                            stroke={isCheckedIn ? '#0F1147' : '#C4CDDF'}
+                            strokeWidth={0.8}
+                            strokeLinejoin="round"
+                            onPress={() => handleZonePress(zone.id, zone.name)}
+                          />
+                          <SvgText
+                            x={zone.labelX}
+                            y={zone.labelY}
+                            fontSize={zone.fontSize ?? (activeTab === 'ntu' ? 8 : 6)}
+                            fill={isCheckedIn ? '#FFFFFF' : '#5A6478'}
+                            textAnchor="middle"
+                            fontWeight="bold"
+                            onPress={() => handleZonePress(zone.id, zone.name)}
+                          >
+                            {zone.shortName}
+                          </SvgText>
+                        </React.Fragment>
+                      );
+                    })}
+                  </G>
+                </Svg>
+              </GestureDetector>
+            </GestureHandlerRootView>
           </View>
 
           {/* Stats Card */}

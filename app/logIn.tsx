@@ -20,6 +20,10 @@ export default function LogIn() {
       Alert.alert('Login', 'Please enter email and password.');
       return;
     }
+    if (!/^[^\s@]+@e\.ntu\.edu\.sg$/i.test(email.trim())) {
+      Alert.alert('Login', 'Please use a valid NTU email address (e.g. username@e.ntu.edu.sg).');
+      return;
+    }
     setLoading(true);
     const result = await login(email.trim(), password);
     setLoading(false);

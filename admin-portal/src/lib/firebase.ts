@@ -18,7 +18,7 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const functions = getFunctions(app);
 
-// ── Callable function helpers ────────────────────────────────────────
+//  Callable function helpers 
 export const callGetDashboardStats = httpsCallable(functions, 'getDashboardStats');
 export const callGetPendingContent = httpsCallable(functions, 'getPendingContent');
 export const callApproveContent = httpsCallable(functions, 'approveContent');

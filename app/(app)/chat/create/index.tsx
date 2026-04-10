@@ -75,6 +75,7 @@ export default function CreateChatScreen() {
       setSelectedUsers(selectedUsers.filter((s) => s.uid !== u.uid));
     } else {
       setSelectedUsers([...selectedUsers, u]);
+      setSearchQuery('');
     }
   };
 
@@ -131,9 +132,9 @@ export default function CreateChatScreen() {
         </View>
 
         <SmartMatchBanner
-          title="Smart Match"
-          description="Find an Alumni Mentor or Study Buddy using our matching algorithm."
-          onPress={() => router.push('/chat/smart_match_settings')}
+          title="Smart Match Discovery"
+          description="Discover people and groups that match your interests and profile."
+          onPress={() => router.push('/chat/smart_match' as any)}
         />
 
         <View className="pt-2">

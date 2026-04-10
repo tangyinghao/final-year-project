@@ -28,7 +28,7 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
 
 export async function updateUserProfile(
   uid: string,
-  data: Partial<Pick<UserProfile, 'displayName' | 'bio' | 'programme' | 'graduationYear' | 'interests' | 'profilePhoto' | 'notificationsEnabled' | 'onboarded'>>
+  data: Partial<Pick<UserProfile, 'displayName' | 'bio' | 'programme' | 'graduationYear' | 'interests' | 'profilePhoto' | 'notificationsEnabled' | 'onboarded' | 'languages' | 'matchingEnabled'>>
 ): Promise<void> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const update: any = { ...data, updatedAt: serverTimestamp() };

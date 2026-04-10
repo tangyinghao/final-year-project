@@ -98,7 +98,8 @@ export async function sendMessage(
 // Create a direct chat
 export async function createDirectChat(
   currentUserId: string,
-  otherUserId: string
+  otherUserId: string,
+  matchType: 'manual' | 'algorithm' = 'manual'
 ): Promise<string> {
   // Check if direct chat already exists between these two users
   const q = query(
@@ -120,7 +121,8 @@ export async function createDirectChat(
     participants: [currentUserId, otherUserId],
     name: null,
     createdBy: currentUserId,
-    matchType: 'manual',
+    owner: null,
+    matchType,
     cohortYear: null,
     lastMessage: null,
     unreadCount: {},
@@ -144,6 +146,7 @@ export async function createGroupChat(
     name: groupName,
     groupPhoto: null,
     createdBy: currentUserId,
+    owner: currentUserId,
     matchType,
     cohortYear: null,
     lastMessage: null,
@@ -175,6 +178,15 @@ export async function removeGroupPhoto(chatId: string): Promise<void> {
 // Rename group chat
 export async function renameGroupChat(chatId: string, newName: string): Promise<void> {
   await updateDoc(doc(db, 'chats', chatId), { name: newName });
+}
+
+// Update group smart match listing settings
+export async function updateGroupListing(
+  chatId: string,
+  listed: boolean,
+  maxCapacity: number | null
+): Promise<void> {
+  await updateDoc(doc(db, 'chats', chatId), { listed, maxCapacity });
 }
 
 // Get single chat

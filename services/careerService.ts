@@ -1,20 +1,18 @@
+import { db, storage } from '@/config/firebaseConfig';
+import { Job, Mentorship } from '@/types';
 import {
+  addDoc,
   collection,
   doc,
-  addDoc,
   getDoc,
   getDocs,
-  updateDoc,
-  query,
-  where,
   orderBy,
+  query,
   serverTimestamp,
   setDoc,
-  Timestamp,
+  where
 } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '@/config/firebaseConfig';
-import { Job, Mentorship, JobApplication, MentorshipRequest } from '@/types';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 
 async function uriToBlob(uri: string): Promise<Blob> {
   const response = await fetch(uri);
@@ -22,7 +20,7 @@ async function uriToBlob(uri: string): Promise<Blob> {
   return blob;
 }
 
-// ── Jobs ─────────────────────────────────────────────────────────────
+//  Jobs 
 export async function getApprovedJobs(): Promise<Job[]> {
   const q = query(
     collection(db, 'jobs'),
@@ -80,7 +78,7 @@ export async function applyToJob(
   });
 }
 
-// ── Mentorships ──────────────────────────────────────────────────────
+//  Mentorships 
 export async function getApprovedMentorships(): Promise<Mentorship[]> {
   const q = query(
     collection(db, 'mentorships'),

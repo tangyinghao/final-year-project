@@ -11,6 +11,7 @@ import {
 import {
   doc,
   getDoc,
+  onSnapshot,
   serverTimestamp,
   setDoc,
 } from 'firebase/firestore';
@@ -56,24 +57,57 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
   };
 
   useEffect(() => {
+    let userUnsub: (() => void) | null = null;
+
     const unsub = onAuthStateChanged(auth, async (fbUser) => {
+      // Clean up previous user doc listener
+      if (userUnsub) { userUnsub(); userUnsub = null; }
+
       if (fbUser) {
         setFirebaseUser(fbUser);
         const profile = await fetchUserProfile(fbUser.uid);
+
+        // Eject suspended users immediately
+        if (profile?.status === 'suspended') {
+          await signOut(auth);
+          return;
+        }
+
         setUser(profile);
         setIsAuthenticated(true);
+
+        // Listen for real-time suspension
+        userUnsub = onSnapshot(doc(db, 'users', fbUser.uid), (snap) => {
+          const data = snap.data();
+          if (data?.status === 'suspended') {
+            signOut(auth);
+          }
+        });
       } else {
         setFirebaseUser(null);
         setUser(null);
         setIsAuthenticated(false);
       }
     });
-    return unsub;
+
+    return () => {
+      unsub();
+      if (userUnsub) userUnsub();
+    };
   }, []);
 
   const login = async (email: string, password: string) => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      // Check if user is suspended before allowing login
+      const profile = await fetchUserProfile(cred.user.uid);
+      if (profile?.status === 'suspended') {
+        await signOut(auth);
+        return {
+          success: false,
+          error: 'Your account has been suspended. If you believe this is a mistake, please contact the admin at admin1@e.ntu.edu.sg.',
+        };
+      }
       return { success: true };
     } catch (e: any) {
       let msg = e.message;

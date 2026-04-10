@@ -7,7 +7,6 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { IconBadge } from '@/components/ui/IconBadge';
 import { ScreenHeader } from '@/components/navigation/ScreenHeader';
 import { useAuth } from '@/context/authContext';
-import { FEATURE_FLAGS } from '@/constants/featureFlags';
 import { subscribeToNotifications, markNotificationAsRead } from '@/services/notificationService';
 import { AppNotification } from '@/types';
 import { DEFAULT_AVATAR } from '@/constants/images';
@@ -26,11 +25,6 @@ export default function NotificationsScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!FEATURE_FLAGS.notificationsEnabled) {
-      setNotifications([]);
-      setLoading(false);
-      return;
-    }
     if (!user?.uid) return;
     const unsub = subscribeToNotifications(user.uid, (notifs) => {
       setNotifications(notifs);

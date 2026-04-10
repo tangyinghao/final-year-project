@@ -51,14 +51,23 @@ export default function EventsScreen() {
   }, [fetchData]);
 
   const formatEventTime = (event: AppEvent) => {
-    if (!event.date) return '';
-    const date = event.date.toDate();
+    const ts = event.createdAt ?? event.date;
+    if (!ts) return '';
+    const created = ts.toDate();
     const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffHrs = Math.floor(diffMs / 3600000);
-    if (diffHrs < 1) return 'Just now';
+    const diffMs = now.getTime() - created.getTime();
+    if (diffMs < 0) return 'Just now';
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return 'Just now';
+    if (diffMin < 60) return `${diffMin}min ago`;
+    const diffHrs = Math.floor(diffMin / 60);
     if (diffHrs < 24) return `${diffHrs}h ago`;
-    return date.toLocaleDateString();
+    const diffDays = Math.floor(diffHrs / 24);
+    if (diffDays < 30) return `${diffDays}d ago`;
+    const diffMo = Math.floor(diffDays / 30);
+    if (diffMo < 12) return `${diffMo}mo ago`;
+    const diffYr = Math.floor(diffDays / 365);
+    return `${diffYr}y ago`;
   };
 
   return (

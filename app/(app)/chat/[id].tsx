@@ -1,16 +1,16 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Image, Modal, Animated, Alert, ActivityIndicator, Dimensions, Linking } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { StatusBar } from 'expo-status-bar';
-import * as ImagePicker from 'expo-image-picker';
-import * as DocumentPicker from 'expo-document-picker';
+import { DEFAULT_AVATAR } from '@/constants/images';
 import { useAuth } from '@/context/authContext';
-import { subscribeToMessages, sendMessage as sendChatMessage, sendImageMessage, sendFileMessage, getChatParticipantIds, markChatAsRead, getChat, uploadGroupPhoto, removeGroupPhoto, renameGroupChat } from '@/services/chatService';
+import { getChat, getChatParticipantIds, markChatAsRead, sendMessage as sendChatMessage, sendFileMessage, sendImageMessage, subscribeToMessages } from '@/services/chatService';
 import { getUsersByIds } from '@/services/userService';
 import { Message, UserProfile } from '@/types';
-import { DEFAULT_AVATAR } from '@/constants/images';
+import { Ionicons } from '@expo/vector-icons';
+import * as DocumentPicker from 'expo-document-picker';
+import * as ImagePicker from 'expo-image-picker';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Alert, Dimensions, Image, KeyboardAvoidingView, Linking, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -22,18 +22,10 @@ export default function ChatDetailScreen() {
   const [inputText, setInputText] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [members, setMembers] = useState<UserProfile[]>([]);
-  const [showGroupInfo, setShowGroupInfo] = useState(false);
   const [groupPhoto, setGroupPhoto] = useState<string | null>(null);
-  const [showPhotoMenu, setShowPhotoMenu] = useState(false);
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [groupName, setGroupName] = useState<string>((name as string) || 'Group Chat');
-  const [editingName, setEditingName] = useState(false);
-  const [nameDraft, setNameDraft] = useState('');
   const scrollRef = useRef<ScrollView>(null);
-
-  const overlayOpacity = useRef(new Animated.Value(0)).current;
-  const sheetTranslateY = useRef(new Animated.Value(300)).current;
-  const sheetScale = useRef(new Animated.Value(0.95)).current;
+  const unsubMessagesRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     if (!chatId) return;
@@ -45,7 +37,8 @@ export default function ChatDetailScreen() {
       // Mark as read whenever new messages arrive
       if (user?.uid) markChatAsRead(chatId, user.uid);
     });
-    return unsub;
+    unsubMessagesRef.current = unsub;
+    return () => { unsub(); unsubMessagesRef.current = null; };
   }, [chatId]);
 
   useEffect(() => {
@@ -66,35 +59,8 @@ export default function ChatDetailScreen() {
     })();
   }, [chatId, isGroup]);
 
-  const handleRenameGroup = async () => {
-    const trimmed = nameDraft.trim();
-    if (!trimmed || trimmed === groupName) {
-      setEditingName(false);
-      return;
-    }
-    await renameGroupChat(chatId, trimmed);
-    setGroupName(trimmed);
-    setEditingName(false);
-  };
-
   const openGroupInfo = () => {
-    overlayOpacity.setValue(0);
-    sheetTranslateY.setValue(300);
-    sheetScale.setValue(0.95);
-    setShowGroupInfo(true);
-    Animated.parallel([
-      Animated.timing(overlayOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
-      Animated.timing(sheetTranslateY, { toValue: 0, duration: 300, useNativeDriver: true }),
-      Animated.timing(sheetScale, { toValue: 1, duration: 300, useNativeDriver: true }),
-    ]).start();
-  };
-
-  const closeGroupInfo = () => {
-    Animated.parallel([
-      Animated.timing(overlayOpacity, { toValue: 0, duration: 250, useNativeDriver: true }),
-      Animated.timing(sheetTranslateY, { toValue: 300, duration: 250, useNativeDriver: true }),
-      Animated.timing(sheetScale, { toValue: 0.95, duration: 250, useNativeDriver: true }),
-    ]).start(() => setShowGroupInfo(false));
+    router.push({ pathname: '/chat/group_info', params: { chatId } } as any);
   };
 
   const [sendingAttachment, setSendingAttachment] = useState(false);
@@ -168,39 +134,6 @@ export default function ChatDetailScreen() {
     }
   };
 
-  const handlePickGroupPhoto = async () => {
-    setShowPhotoMenu(false);
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.7,
-    });
-    if (result.canceled || !result.assets?.[0]?.uri) return;
-    setUploadingPhoto(true);
-    try {
-      const url = await uploadGroupPhoto(chatId, result.assets[0].uri);
-      setGroupPhoto(url);
-    } catch {
-      Alert.alert('Error', 'Failed to upload group photo.');
-    } finally {
-      setUploadingPhoto(false);
-    }
-  };
-
-  const handleRemoveGroupPhoto = async () => {
-    setShowPhotoMenu(false);
-    setUploadingPhoto(true);
-    try {
-      await removeGroupPhoto(chatId);
-      setGroupPhoto(null);
-    } catch {
-      Alert.alert('Error', 'Failed to remove group photo.');
-    } finally {
-      setUploadingPhoto(false);
-    }
-  };
-
   return (
     <SafeAreaView className="flex-1 bg-[#F7F7F7]">
       <StatusBar style="dark" />
@@ -245,7 +178,7 @@ export default function ChatDetailScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
       >
-        <ScrollView ref={scrollRef} className="flex-1 px-4 pt-4" contentContainerStyle={{paddingBottom: 16}} showsVerticalScrollIndicator={false}>
+        <ScrollView ref={scrollRef} className="flex-1 px-4 pt-4" contentContainerStyle={{ paddingBottom: 16 }} showsVerticalScrollIndicator={false}>
           {messages.map((msg) => {
             const isSender = msg.senderId === user?.uid;
             const senderProfile = members.find((m) => m.uid === msg.senderId);
@@ -258,9 +191,8 @@ export default function ChatDetailScreen() {
                   />
                 )}
                 <View
-                  className={`max-w-[75%] ${msg.type === 'image' ? 'rounded-2xl overflow-hidden' : `px-4 py-3 rounded-2xl ${
-                    isSender ? 'bg-[#DFF0FF] rounded-br-sm' : 'bg-white rounded-bl-sm border border-[#E5E5EA]'
-                  }${msg.type === 'file' ? ' px-2 py-2' : ''}`}`}
+                  className={`max-w-[75%] ${msg.type === 'image' ? 'rounded-2xl overflow-hidden' : `px-4 py-3 rounded-2xl ${isSender ? 'bg-[#DFF0FF] rounded-br-sm' : 'bg-white rounded-bl-sm border border-[#E5E5EA]'
+                    }${msg.type === 'file' ? ' px-2 py-2' : ''}`}`}
                 >
                   {!isSender && isGroup === 'true' && (
                     <Text className={`text-[11px] text-[#8E8E93] mb-1 ${msg.type === 'image' ? 'px-2 pt-2' : ''}`} style={{ fontFamily: 'PlusJakartaSans-Medium' }}>
@@ -370,143 +302,6 @@ export default function ChatDetailScreen() {
         </View>
       </KeyboardAvoidingView>
 
-      {/* Group Info Modal */}
-      <Modal visible={showGroupInfo} transparent animationType="none" onRequestClose={closeGroupInfo}>
-        <View style={{ flex: 1, justifyContent: 'flex-end' }}>
-          <Animated.View
-            style={{
-              position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-              backgroundColor: 'rgba(0,0,0,0.5)',
-              opacity: overlayOpacity,
-            }}
-          >
-            <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={closeGroupInfo} />
-          </Animated.View>
-          <Animated.View style={{ maxHeight: '70%', transform: [{ translateY: sheetTranslateY }, { scale: sheetScale }] }}>
-            <View className="bg-white rounded-t-2xl px-5 pb-8 pt-3">
-              <View className="w-10 h-1 bg-[#E5E5EA] rounded-full self-center mb-4" />
-
-              {/* Group Photo */}
-              <View className="items-center mb-4">
-                <View>
-                  <Image
-                    source={groupPhoto ? { uri: groupPhoto } : DEFAULT_AVATAR}
-                    className="w-20 h-20 rounded-full bg-gray-200"
-                  />
-                  <TouchableOpacity
-                    className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-[#1B1C62] items-center justify-center border-2 border-white"
-                    onPress={() => setShowPhotoMenu(!showPhotoMenu)}
-                    disabled={uploadingPhoto}
-                  >
-                    {uploadingPhoto ? (
-                      <ActivityIndicator size="small" color="white" />
-                    ) : (
-                      <Ionicons name="pencil" size={14} color="white" />
-                    )}
-                  </TouchableOpacity>
-                </View>
-                {showPhotoMenu && (
-                  <View className="bg-white rounded-xl border border-[#E5E5EA] mt-2 overflow-hidden" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 8, elevation: 6 }}>
-                    <TouchableOpacity className="flex-row items-center px-4 py-3" onPress={handlePickGroupPhoto}>
-                      <Ionicons name="image-outline" size={18} color="#1B1C62" />
-                      <Text className="text-[14px] text-black ml-3" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>
-                        {groupPhoto ? 'Change Photo' : 'Choose Photo'}
-                      </Text>
-                    </TouchableOpacity>
-                    {groupPhoto && (
-                      <>
-                        <View style={{ height: 1, backgroundColor: '#E5E5EA', marginHorizontal: 12 }} />
-                        <TouchableOpacity className="flex-row items-center px-4 py-3" onPress={handleRemoveGroupPhoto}>
-                          <Ionicons name="trash-outline" size={18} color="#D71440" />
-                          <Text className="text-[14px] text-[#D71440] ml-3" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>Remove Photo</Text>
-                        </TouchableOpacity>
-                      </>
-                    )}
-                  </View>
-                )}
-              </View>
-
-              <View className="flex-row items-center justify-between mb-2">
-                {editingName ? (
-                  <View className="flex-1 flex-row items-center mr-2">
-                    <TextInput
-                      className="flex-1 text-[20px] font-bold text-black border-b border-[#1B1C62] py-1"
-                      style={{ fontFamily: 'PlusJakartaSans-Bold' }}
-                      value={nameDraft}
-                      onChangeText={setNameDraft}
-                      autoFocus
-                      maxLength={50}
-                      onSubmitEditing={handleRenameGroup}
-                      returnKeyType="done"
-                    />
-                    <TouchableOpacity onPress={handleRenameGroup} className="ml-2 w-8 h-8 items-center justify-center">
-                      <Ionicons name="checkmark" size={22} color="#1B1C62" />
-                    </TouchableOpacity>
-                  </View>
-                ) : (
-                  <TouchableOpacity className="flex-1 mr-2" onPress={() => { setNameDraft(groupName); setEditingName(true); }}>
-                    <View className="flex-row items-center">
-                      <Text className="text-[20px] font-bold text-black flex-shrink" numberOfLines={1} style={{ fontFamily: 'PlusJakartaSans-Bold' }}>{groupName}</Text>
-                      <Ionicons name="pencil-outline" size={16} color="#8E8E93" style={{ marginLeft: 6 }} />
-                    </View>
-                  </TouchableOpacity>
-                )}
-                <TouchableOpacity onPress={closeGroupInfo} className="w-8 h-8 items-center justify-center flex-shrink-0">
-                  <Ionicons name="close" size={22} color="#8E8E93" />
-                </TouchableOpacity>
-              </View>
-
-              <Text className="text-[13px] text-[#8E8E93] uppercase mb-3 font-medium" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>
-                Members ({members.length})
-              </Text>
-
-              <ScrollView showsVerticalScrollIndicator={false}>
-                {members.map((member) => {
-                  const isYou = member.uid === user?.uid;
-                  return (
-                    <TouchableOpacity
-                      key={member.uid}
-                      className="flex-row items-center py-3 border-b border-[#F2F2F7]"
-                      onPress={() => {
-                        if (!isYou) {
-                          closeGroupInfo();
-                          router.push(`/profile/view/${member.uid}` as any);
-                        }
-                      }}
-                      disabled={isYou}
-                    >
-                      <Image
-                        source={member.profilePhoto ? { uri: member.profilePhoto } : DEFAULT_AVATAR}
-                        className="w-11 h-11 rounded-full bg-gray-200"
-                      />
-                      <View className="flex-1 ml-3 justify-center">
-                        <Text className="text-[15px] font-bold text-black" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
-                          {member.displayName}
-                          {isYou && <Text className="text-[#8E8E93] font-normal"> (you)</Text>}
-                        </Text>
-                        <Text className="text-[13px] text-[#8E8E93] mt-0.5" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>
-                          {member.programme || member.role}
-                        </Text>
-                      </View>
-                      {!isYou && <Ionicons name="chevron-forward" size={16} color="#C7C7CC" />}
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-
-              <TouchableOpacity
-                className="w-full border border-[#D71440] py-3 rounded-xl items-center justify-center mt-4"
-                onPress={() => {
-                  setShowGroupInfo(false);
-                  router.back();
-                }}
-              >
-                <Text className="text-[#D71440] font-bold text-[15px]" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>Leave Group</Text>
-              </TouchableOpacity>
-            </View>
-          </Animated.View>
-        </View>
-      </Modal>
 
       {/* Image Preview Before Send */}
       <Modal visible={!!previewImage} transparent animationType="fade">

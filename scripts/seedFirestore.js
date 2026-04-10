@@ -6,7 +6,7 @@
  *
  * Created Content:
  *   - 22 users  (2 admins, 20 students/alumni)
- *   - 2 group chats  in  chats/   with messages
+ *   - 6 group chats  in  chats/   with messages
  *   - 10 direct chats per user    with messages
  *   - 4 official events  in events/
  *   - 10 user-created events in events/
@@ -22,7 +22,7 @@
 const admin = require('firebase-admin');
 const path = require('path');
 
-// ─── Initialise with service account key ──
+// Initialise with service account key
 const serviceAccount = require(path.join(__dirname, '..', 'functions', 'serviceAccountKey.json'));
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -38,29 +38,32 @@ const PASSWORD = 'Test1234!';
 // 22 Users
 const USERS = [
   // 2 Admins
-  { email: 'admin1@test.com', displayName: 'Dr. Sarah Wong', role: 'admin', programme: '', graduationYear: null, interests: [], bio: 'MSCircle system administrator and EEE faculty.', profilePhoto: 'https://i.pravatar.cc/300?u=admin1-mscircle' },
-  { email: 'admin2@test.com', displayName: 'James Ong', role: 'admin', programme: '', graduationYear: null, interests: [], bio: 'Student affairs coordinator and platform admin.', profilePhoto: 'https://i.pravatar.cc/300?u=admin2-mscircle' },
-  // 20 Students
-  { email: 'alice@test.com', displayName: 'Alice Tan', role: 'student', programme: 'Electrical & Electronic Engineering', graduationYear: null, interests: ['AI', 'Robotics', 'IoT'], bio: 'Year 3 EEE student passionate about embedded systems.', profilePhoto: 'https://i.pravatar.cc/300?u=alice-mscircle' },
-  { email: 'bob@test.com', displayName: 'Bob Lim', role: 'alumni', programme: 'Electrical & Electronic Engineering', graduationYear: 2023, interests: ['Power Systems', 'Renewable Energy', 'Mentoring'], bio: 'EEE alumni working at Schneider Electric. Happy to mentor!', profilePhoto: 'https://i.pravatar.cc/300?u=bob-mscircle' },
-  { email: 'carol@test.com', displayName: 'Carol Chen', role: 'student', programme: 'Computer Engineering', graduationYear: null, interests: ['AI', 'Web Development', 'Startups'], bio: 'Year 2 CE student interested in AI startups.', profilePhoto: 'https://i.pravatar.cc/300?u=carol-mscircle' },
-  { email: 'david@test.com', displayName: 'David Ng', role: 'alumni', programme: 'Electrical & Electronic Engineering', graduationYear: 2022, interests: ['Signal Processing', 'Communications', '5G'], bio: 'RF engineer at Qualcomm Singapore.', profilePhoto: 'https://i.pravatar.cc/300?u=david-mscircle' },
-  { email: 'emily@test.com', displayName: 'Emily Koh', role: 'student', programme: 'Electrical & Electronic Engineering', graduationYear: null, interests: ['Electronics', 'VLSI', 'Semiconductors'], bio: 'Year 3 student specialising in VLSI design.', profilePhoto: 'https://i.pravatar.cc/300?u=emily-mscircle' },
-  { email: 'frank@test.com', displayName: 'Frank Lee', role: 'alumni', programme: 'Electrical & Electronic Engineering', graduationYear: 2021, interests: ['Power Engineering', 'Smart Grid', 'EVs'], bio: 'Power systems engineer at SP Group.', profilePhoto: 'https://i.pravatar.cc/300?u=frank-mscircle' },
-  { email: 'grace@test.com', displayName: 'Grace Yeo', role: 'student', programme: 'Electrical & Electronic Engineering', graduationYear: null, interests: ['Computer Control', 'Automation', 'PLC'], bio: 'Year 2 student interested in industrial automation.', profilePhoto: 'https://i.pravatar.cc/300?u=grace-mscircle' },
-  { email: 'henry@test.com', displayName: 'Henry Chua', role: 'alumni', programme: 'Electrical & Electronic Engineering', graduationYear: 2020, interests: ['Communications', 'Networking', 'IoT'], bio: 'Network architect at Singtel.', profilePhoto: 'https://i.pravatar.cc/300?u=henry-mscircle' },
-  { email: 'iris@test.com', displayName: 'Iris Teo', role: 'student', programme: 'Electrical & Electronic Engineering', graduationYear: null, interests: ['Signal Processing', 'Machine Learning', 'Audio'], bio: 'Year 3 student researching audio ML.', profilePhoto: 'https://i.pravatar.cc/300?u=iris-mscircle' },
-  { email: 'jack@test.com', displayName: 'Jack Sim', role: 'alumni', programme: 'Computer Engineering', graduationYear: 2023, interests: ['Embedded Systems', 'FPGA', 'Hardware'], bio: 'Hardware engineer at Dyson Singapore.', profilePhoto: 'https://i.pravatar.cc/300?u=jack-mscircle' },
-  { email: 'karen@test.com', displayName: 'Karen Loh', role: 'student', programme: 'Electrical & Electronic Engineering', graduationYear: null, interests: ['Power Engineering', 'Renewable Energy', 'Solar'], bio: 'Year 2 student interested in solar energy systems.', profilePhoto: 'https://i.pravatar.cc/300?u=karen-mscircle' },
-  { email: 'lucas@test.com', displayName: 'Lucas Pang', role: 'alumni', programme: 'Electrical & Electronic Engineering', graduationYear: 2022, interests: ['Electronics', 'PCB Design', 'IoT'], bio: 'Electronics design engineer at Keysight.', profilePhoto: 'https://i.pravatar.cc/300?u=lucas-mscircle' },
-  { email: 'megan@test.com', displayName: 'Megan Foo', role: 'student', programme: 'Electrical & Electronic Engineering', graduationYear: null, interests: ['AI', 'Computer Vision', 'Robotics'], bio: 'Year 3 student working on autonomous drones.', profilePhoto: 'https://i.pravatar.cc/300?u=megan-mscircle' },
-  { email: 'nathan@test.com', displayName: 'Nathan Ho', role: 'alumni', programme: 'Electrical & Electronic Engineering', graduationYear: 2021, interests: ['Communications', '5G', 'Antenna Design'], bio: 'Antenna engineer at Ericsson.', profilePhoto: 'https://i.pravatar.cc/300?u=nathan-mscircle' },
-  { email: 'olivia@test.com', displayName: 'Olivia Kwek', role: 'student', programme: 'Electrical & Electronic Engineering', graduationYear: null, interests: ['Computer Control', 'Robotics', 'ROS'], bio: 'Year 2 student building ROS-based robots.', profilePhoto: 'https://i.pravatar.cc/300?u=olivia-mscircle' },
-  { email: 'peter@test.com', displayName: 'Peter Goh', role: 'alumni', programme: 'Electrical & Electronic Engineering', graduationYear: 2020, interests: ['Signal Processing', 'Radar', 'Defence'], bio: 'DSP engineer at ST Engineering.', profilePhoto: 'https://i.pravatar.cc/300?u=peter-mscircle' },
-  { email: 'rachel@test.com', displayName: 'Rachel Tay', role: 'student', programme: 'Electrical & Electronic Engineering', graduationYear: null, interests: ['Electronics', 'Biomedical', 'Sensors'], bio: 'Year 3 student researching biomedical sensors.', profilePhoto: 'https://i.pravatar.cc/300?u=rachel-mscircle' },
-  { email: 'samuel@test.com', displayName: 'Samuel Tan', role: 'alumni', programme: 'Electrical & Electronic Engineering', graduationYear: 2023, interests: ['Power Engineering', 'Battery', 'EVs'], bio: 'Battery systems engineer at Tesla.', profilePhoto: 'https://i.pravatar.cc/300?u=samuel-mscircle' },
-  { email: 'tina@test.com', displayName: 'Tina Ang', role: 'student', programme: 'Electrical & Electronic Engineering', graduationYear: null, interests: ['AI', 'NLP', 'Data Science'], bio: 'Year 2 student exploring NLP applications in engineering.', profilePhoto: 'https://i.pravatar.cc/300?u=tina-mscircle' },
-  { email: 'victor@test.com', displayName: 'Victor Lim', role: 'alumni', programme: 'Computer Engineering', graduationYear: 2022, interests: ['Embedded Systems', 'RTOS', 'Firmware'], bio: 'Firmware engineer at Micron.', profilePhoto: 'https://i.pravatar.cc/300?u=victor-mscircle' },
+  { email: 'admin1@e.ntu.edu.sg', displayName: 'Dr. Sarah Wong', role: 'admin', programme: '', graduationYear: null, interests: [], languages: ['English'], matchingEnabled: false, bio: 'MSCircle system administrator and EEE faculty.', profilePhoto: 'https://i.pravatar.cc/300?u=admin1-mscircle' },
+  { email: 'admin2@e.ntu.edu.sg', displayName: 'James Ong', role: 'admin', programme: '', graduationYear: null, interests: [], languages: ['English', 'Mandarin'], matchingEnabled: false, bio: 'Student affairs coordinator and platform admin.', profilePhoto: 'https://i.pravatar.cc/300?u=admin2-mscircle' },
+  // 20 Students & Alumni: all MSc EEE, spread across 7 specialisation pathways
+  // 1. Communications Engineering  2. Power Engineering  3. Computer Control & Automation
+  // 4. Integrated Circuits & Microelectronics  5. Signal Processing & Machine Learning
+  // 6. Green Electronics  7. Integrated Circuit Design
+  { email: 'alice@e.ntu.edu.sg', displayName: 'Alice Tan', role: 'student', programme: 'MSc Electrical & Electronic Engineering', graduationYear: 2026, interests: ['Signal Processing', 'Machine Learning', 'IoT'], languages: ['English', 'Mandarin'], matchingEnabled: true, bio: 'MSc EEE student specialising in Signal Processing & Machine Learning. Passionate about ML for sensor systems.', profilePhoto: 'https://i.pravatar.cc/300?u=alice-mscircle' },
+  { email: 'bob@e.ntu.edu.sg', displayName: 'Bob Lim', role: 'alumni', programme: 'MSc Electrical & Electronic Engineering', graduationYear: 2023, interests: ['Power Systems', 'Renewable Energy', 'Mentoring'], languages: ['English', 'Mandarin'], matchingEnabled: true, bio: 'MSc EEE graduate (Power Engineering). Working at Schneider Electric. Happy to mentor!', profilePhoto: 'https://i.pravatar.cc/300?u=bob-mscircle' },
+  { email: 'carol@e.ntu.edu.sg', displayName: 'Carol Chen', role: 'student', programme: 'MSc Electrical & Electronic Engineering', graduationYear: 2027, interests: ['IC Design', 'VLSI', 'ASIC'], languages: ['English', 'Mandarin'], matchingEnabled: true, bio: 'MSc EEE student on the Integrated Circuit Design pathway. Interested in ASIC design and verification.', profilePhoto: 'https://i.pravatar.cc/300?u=carol-mscircle' },
+  { email: 'david@e.ntu.edu.sg', displayName: 'David Ng', role: 'alumni', programme: 'MSc Electrical & Electronic Engineering', graduationYear: 2024, interests: ['Communications', '5G', 'RF Design'], languages: ['English', 'Mandarin'], matchingEnabled: true, bio: 'MSc EEE graduate (Communications Engineering). RF engineer at Qualcomm Singapore.', profilePhoto: 'https://i.pravatar.cc/300?u=david-mscircle' },
+  { email: 'emily@e.ntu.edu.sg', displayName: 'Emily Koh', role: 'student', programme: 'MSc Electrical & Electronic Engineering', graduationYear: 2026, interests: ['Microelectronics', 'VLSI', 'Semiconductors'], languages: ['English', 'Mandarin'], matchingEnabled: true, bio: 'MSc EEE student specialising in Integrated Circuits & Microelectronics. Focused on VLSI and semiconductor devices.', profilePhoto: 'https://i.pravatar.cc/300?u=emily-mscircle' },
+  { email: 'frank@e.ntu.edu.sg', displayName: 'Frank Lee', role: 'alumni', programme: 'MSc Electrical & Electronic Engineering', graduationYear: 2023, interests: ['Power Engineering', 'Smart Grid', 'EVs'], languages: ['English', 'Mandarin', 'Malay'], matchingEnabled: true, bio: 'MSc EEE graduate (Power Engineering). Power systems engineer at SP Group.', profilePhoto: 'https://i.pravatar.cc/300?u=frank-mscircle' },
+  { email: 'grace@e.ntu.edu.sg', displayName: 'Grace Yeo', role: 'student', programme: 'MSc Electrical & Electronic Engineering', graduationYear: 2027, interests: ['Computer Control', 'Automation', 'PLC'], languages: ['English', 'Mandarin'], matchingEnabled: true, bio: 'MSc EEE student on the Computer Control & Automation pathway. Interested in industrial automation and PLCs.', profilePhoto: 'https://i.pravatar.cc/300?u=grace-mscircle' },
+  { email: 'henry@e.ntu.edu.sg', displayName: 'Henry Chua', role: 'alumni', programme: 'MSc Electrical & Electronic Engineering', graduationYear: 2024, interests: ['Communications', 'Networking', 'IoT'], languages: ['English', 'Mandarin'], matchingEnabled: true, bio: 'MSc EEE graduate (Communications Engineering). Network architect at Singtel.', profilePhoto: 'https://i.pravatar.cc/300?u=henry-mscircle' },
+  { email: 'iris@e.ntu.edu.sg', displayName: 'Iris Teo', role: 'student', programme: 'MSc Electrical & Electronic Engineering', graduationYear: 2026, interests: ['Signal Processing', 'Machine Learning', 'Audio'], languages: ['English', 'Mandarin', 'Malay'], matchingEnabled: true, bio: 'MSc EEE student specialising in Signal Processing & Machine Learning. Researching audio ML techniques.', profilePhoto: 'https://i.pravatar.cc/300?u=iris-mscircle' },
+  { email: 'jack@e.ntu.edu.sg', displayName: 'Jack Sim', role: 'alumni', programme: 'MSc Electrical & Electronic Engineering', graduationYear: 2023, interests: ['Green Electronics', 'Energy Harvesting', 'Sustainability'], languages: ['English', 'Mandarin'], matchingEnabled: true, bio: 'MSc EEE graduate (Green Electronics). Sustainable electronics engineer at Dyson Singapore.', profilePhoto: 'https://i.pravatar.cc/300?u=jack-mscircle' },
+  { email: 'karen@e.ntu.edu.sg', displayName: 'Karen Loh', role: 'student', programme: 'MSc Electrical & Electronic Engineering', graduationYear: 2027, interests: ['Power Engineering', 'Renewable Energy', 'Solar'], languages: ['English', 'Tamil'], matchingEnabled: true, bio: 'MSc EEE student on the Power Engineering pathway. Interested in solar energy systems.', profilePhoto: 'https://i.pravatar.cc/300?u=karen-mscircle' },
+  { email: 'lucas@e.ntu.edu.sg', displayName: 'Lucas Pang', role: 'alumni', programme: 'MSc Electrical & Electronic Engineering', graduationYear: 2024, interests: ['IC Design', 'Analog Design', 'Mixed-Signal'], languages: ['English', 'Mandarin'], matchingEnabled: true, bio: 'MSc EEE graduate (Integrated Circuit Design). Analog IC designer at Keysight Technologies.', profilePhoto: 'https://i.pravatar.cc/300?u=lucas-mscircle' },
+  { email: 'megan@e.ntu.edu.sg', displayName: 'Megan Foo', role: 'student', programme: 'MSc Electrical & Electronic Engineering', graduationYear: 2026, interests: ['Green Electronics', 'Power Efficiency', 'Sustainable Design'], languages: ['English', 'Mandarin'], matchingEnabled: true, bio: 'MSc EEE student specialising in Green Electronics. Working on energy-efficient power converter design.', profilePhoto: 'https://i.pravatar.cc/300?u=megan-mscircle' },
+  { email: 'nathan@e.ntu.edu.sg', displayName: 'Nathan Ho', role: 'alumni', programme: 'MSc Electrical & Electronic Engineering', graduationYear: 2023, interests: ['Communications', '5G', 'Antenna Design'], languages: ['English', 'Mandarin'], matchingEnabled: true, bio: 'MSc EEE graduate (Communications Engineering). Antenna engineer at Ericsson.', profilePhoto: 'https://i.pravatar.cc/300?u=nathan-mscircle' },
+  { email: 'olivia@e.ntu.edu.sg', displayName: 'Olivia Kwek', role: 'student', programme: 'MSc Electrical & Electronic Engineering', graduationYear: 2027, interests: ['Computer Control', 'Robotics', 'ROS'], languages: ['English', 'Mandarin', 'Malay'], matchingEnabled: true, bio: 'MSc EEE student on the Computer Control & Automation pathway. Building ROS-based robotic systems.', profilePhoto: 'https://i.pravatar.cc/300?u=olivia-mscircle' },
+  { email: 'peter@e.ntu.edu.sg', displayName: 'Peter Goh', role: 'alumni', programme: 'MSc Electrical & Electronic Engineering', graduationYear: 2024, interests: ['Signal Processing', 'Radar', 'Defence'], languages: ['English', 'Mandarin'], matchingEnabled: true, bio: 'MSc EEE graduate (Signal Processing & Machine Learning). DSP engineer at ST Engineering.', profilePhoto: 'https://i.pravatar.cc/300?u=peter-mscircle' },
+  { email: 'rachel@e.ntu.edu.sg', displayName: 'Rachel Tay', role: 'student', programme: 'MSc Electrical & Electronic Engineering', graduationYear: 2026, interests: ['Microelectronics', 'Biomedical', 'Sensors'], languages: ['English', 'Mandarin'], matchingEnabled: true, bio: 'MSc EEE student specialising in Integrated Circuits & Microelectronics. Researching biomedical sensor ICs.', profilePhoto: 'https://i.pravatar.cc/300?u=rachel-mscircle' },
+  { email: 'samuel@e.ntu.edu.sg', displayName: 'Samuel Tan', role: 'alumni', programme: 'MSc Electrical & Electronic Engineering', graduationYear: 2023, interests: ['Power Engineering', 'Battery', 'EVs'], languages: ['English', 'Mandarin'], matchingEnabled: true, bio: 'MSc EEE graduate (Power Engineering). Battery systems engineer at Tesla.', profilePhoto: 'https://i.pravatar.cc/300?u=samuel-mscircle' },
+  { email: 'tina@e.ntu.edu.sg', displayName: 'Tina Ang', role: 'student', programme: 'MSc Electrical & Electronic Engineering', graduationYear: 2027, interests: ['IC Design', 'Digital Design', 'FPGA'], languages: ['English', 'Mandarin', 'Hindi'], matchingEnabled: true, bio: 'MSc EEE student on the Integrated Circuit Design pathway. Exploring FPGA-based accelerators.', profilePhoto: 'https://i.pravatar.cc/300?u=tina-mscircle' },
+  { email: 'victor@e.ntu.edu.sg', displayName: 'Victor Lim', role: 'alumni', programme: 'MSc Electrical & Electronic Engineering', graduationYear: 2024, interests: ['Microelectronics', 'RTOS', 'Firmware'], languages: ['English', 'Mandarin'], matchingEnabled: true, bio: 'MSc EEE graduate (Integrated Circuits & Microelectronics). Firmware engineer at Micron Technology.', profilePhoto: 'https://i.pravatar.cc/300?u=victor-mscircle' },
 ];
 
 // Helper: pick random subset
@@ -133,6 +136,8 @@ async function seed() {
 
   // Clean slate
   console.log('0. Cleaning existing data...');
+  await deleteCollection('chatRequests');
+  await deleteCollection('groupJoinRequests');
   await deleteCollection('notifications');
   await deleteCollection('reports');
   await deleteCollection('mentorships', ['requests']);
@@ -144,7 +149,7 @@ async function seed() {
   console.log('  Clean slate ready!\n');
 
   // Create users
-  console.log('1. Creating users...');
+  console.log('Creating users...');
   const uidMap = {};
   for (const u of USERS) {
     const uid = await createOrGetUser(u);
@@ -161,7 +166,10 @@ async function seed() {
         programme: u.programme,
         graduationYear: u.graduationYear,
         interests: u.interests,
+        languages: u.languages,
+        matchingEnabled: u.matchingEnabled,
         bio: u.bio,
+        onboarded: true,
         status: 'active',
         expoPushToken: null,
         notificationsEnabled: false,
@@ -185,7 +193,7 @@ async function seed() {
   const nameOf = (uid) => USERS.find((u) => uidMap[u.email] === uid)?.displayName || 'Unknown';
 
   // 4 Official events
-  console.log('\n2. Creating official events...');
+  console.log('\nCreating official events...');
   const officialEvents = [
     { title: 'EEE Industry Night 2026', description: 'Annual networking event connecting EEE students with industry professionals. Guest speakers from Dyson, ST Engineering, and more.', date: new Date('2026-04-15T18:00:00'), location: 'LT1, NTU North Spine', coverImage: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=400&fit=crop', maxCapacity: 200 },
     { title: 'NTU EEE Career Fair 2026', description: 'Meet top employers recruiting EEE graduates. Companies include Intel, Micron, TSMC, and Infineon. Bring your resume!', date: new Date('2026-05-10T10:00:00'), location: 'NTU Convention Centre', coverImage: 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=800&h=400&fit=crop', maxCapacity: 500 },
@@ -213,12 +221,12 @@ async function seed() {
   }
 
   // 10 User-created events
-  console.log('\n3. Creating user events...');
+  console.log('\nCreating user events...');
   const userEvents = [
     { title: 'Arduino Workshop for Beginners', description: 'Hands-on workshop to build your first IoT project with Arduino. All materials provided!', date: new Date('2026-04-20T14:00:00'), location: 'Hardware Lab 2, S2-B4a', maxCapacity: 30 },
     { title: 'Python for Signal Processing', description: 'Learn FFT, filtering, and spectral analysis with NumPy/SciPy.', date: new Date('2026-05-01T10:00:00'), location: 'Computer Lab 3, N4-B2c', maxCapacity: 40 },
     { title: 'Resume Review & Mock Interview', description: 'Alumni-led session to review your resume and practice technical interviews.', date: new Date('2026-05-05T15:00:00'), location: 'Seminar Room 1, S1-B1a', maxCapacity: 20 },
-    { title: 'PCB Design with KiCad', description: 'From schematic capture to PCB layout — a complete walkthrough using KiCad.', date: new Date('2026-05-08T13:00:00'), location: 'Electronics Lab, S2-B3', maxCapacity: 25 },
+    { title: 'PCB Design with KiCad', description: 'From schematic capture to PCB layout: a complete walkthrough using KiCad.', date: new Date('2026-05-08T13:00:00'), location: 'Electronics Lab, S2-B3', maxCapacity: 25 },
     { title: 'Introduction to ROS2', description: 'Get started with Robot Operating System 2 for your robotics projects.', date: new Date('2026-05-12T14:00:00'), location: 'Robotics Lab, N3-B1', maxCapacity: 20 },
     { title: 'MATLAB for Control Systems', description: 'Hands-on MATLAB/Simulink session for control system design and simulation.', date: new Date('2026-05-15T10:00:00'), location: 'Computer Lab 1, N4-B2a', maxCapacity: 35 },
     { title: 'Startup Pitch Night', description: 'Students and alumni pitch their startup ideas. Prizes for top 3!', date: new Date('2026-05-18T19:00:00'), location: 'LT2, NTU North Spine', maxCapacity: 100 },
@@ -250,10 +258,10 @@ async function seed() {
   }
 
   // 2 Pending events
-  console.log('\n3b. Creating pending events...');
+  console.log('\nCreating pending events...');
   const pendingEvents = [
-    { title: 'IoT Hackathon Weekend', description: 'Build an IoT prototype in 48 hours. Teams of 3-5. Prizes sponsored by Arduino Singapore.', date: new Date('2026-06-01T09:00:00'), location: 'Innovation Centre, NTU', maxCapacity: 50, creator: 'alice@test.com' },
-    { title: 'EEE Alumni Networking Dinner', description: 'Casual dinner for EEE alumni to reconnect and share career experiences.', date: new Date('2026-06-15T19:00:00'), location: 'Orchard Hotel, Singapore', maxCapacity: 40, creator: 'bob@test.com' },
+    { title: 'IoT Hackathon Weekend', description: 'Build an IoT prototype in 48 hours. Teams of 3-5. Prizes sponsored by Arduino Singapore.', date: new Date('2026-06-01T09:00:00'), location: 'Innovation Centre, NTU', maxCapacity: 50, creator: 'alice@e.ntu.edu.sg' },
+    { title: 'EEE Alumni Networking Dinner', description: 'Casual dinner for EEE alumni to reconnect and share career experiences.', date: new Date('2026-06-15T19:00:00'), location: 'Orchard Hotel, Singapore', maxCapacity: 40, creator: 'bob@e.ntu.edu.sg' },
   ];
 
   for (const evt of pendingEvents) {
@@ -280,7 +288,7 @@ async function seed() {
   }
 
   // 10 Jobs
-  console.log('\n4. Creating jobs...');
+  console.log('\nCreating jobs...');
   const SPECIALISATIONS = ['Communications', 'Computer Control', 'Electronics', 'Power Engineering', 'Signal Processing'];
   const jobListings = [
     { title: 'Graduate Embedded Systems Engineer', company: 'Schneider Electric', description: 'Develop next-gen IoT solutions for smart buildings. Fresh graduates with embedded C/C++ welcome.', location: 'Singapore', tags: ['Electronics', 'Computer Control'] },
@@ -312,10 +320,10 @@ async function seed() {
   }
 
   // 2 Pending jobs
-  console.log('\n4b. Creating pending jobs...');
+  console.log('\nCreating pending jobs...');
   const pendingJobs = [
-    { title: 'Research Intern — AI for Robotics', company: 'NTU EEE Lab', description: 'Assist in developing ML models for robotic manipulation. Python and PyTorch required.', location: 'NTU', tags: ['AI', 'Robotics'], poster: 'alice@test.com' },
-    { title: 'Part-time Power Systems Tutor', company: 'Schneider Electric', description: 'Tutor junior EEE students in power systems fundamentals. Flexible hours.', location: 'Singapore', tags: ['Power Engineering'], poster: 'bob@test.com' },
+    { title: 'Research Intern: AI for Robotics', company: 'NTU EEE Lab', description: 'Assist in developing ML models for robotic manipulation. Python and PyTorch required.', location: 'NTU', tags: ['AI', 'Robotics'], poster: 'alice@e.ntu.edu.sg' },
+    { title: 'Part-time Power Systems Tutor', company: 'Schneider Electric', description: 'Tutor junior EEE students in power systems fundamentals. Flexible hours.', location: 'Singapore', tags: ['Power Engineering'], poster: 'bob@e.ntu.edu.sg' },
   ];
 
   for (const job of pendingJobs) {
@@ -339,7 +347,7 @@ async function seed() {
   }
 
   // 10 Mentorships
-  console.log('\n5. Creating mentorships...');
+  console.log('\nCreating mentorships...');
   const mentorshipListings = [
     { title: 'Power Systems & Renewable Energy Mentor', expertise: ['Power Engineering'], availability: 'Weekends, 2 hours/week' },
     { title: 'RF & Antenna Design Guidance', expertise: ['Communications', 'Electronics'], availability: 'Weekday evenings' },
@@ -376,9 +384,9 @@ async function seed() {
   }
 
   // 2 Pending mentorships
-  console.log('\n5b. Creating pending mentorships...');
+  console.log('\nCreating pending mentorships...');
   const pendingMentorships = [
-    { title: 'Renewable Energy Career Guidance', expertise: ['Power Engineering', 'Renewable Energy'], availability: 'Weekday evenings, 1 hour', poster: 'bob@test.com' },
+    { title: 'Renewable Energy Career Guidance', expertise: ['Power Engineering', 'Renewable Energy'], availability: 'Weekday evenings, 1 hour', poster: 'bob@e.ntu.edu.sg' },
   ];
 
   for (const ml of pendingMentorships) {
@@ -403,16 +411,28 @@ async function seed() {
   }
 
   // 2 Group chats
-  console.log('\n6. Creating group chats...');
+  console.log('\nCreating group chats...');
+
+  // Exclude alice so she can discover all 6 groups via Smart Match
+  const aliceUid = uidMap['alice@e.ntu.edu.sg'];
+  const nonAliceUids = nonAdminUids.filter((u) => u !== aliceUid);
 
   const groupChats = [
-    { name: 'EEE Study Group', participants: pickRandom(nonAdminUids, 8) },
-    { name: 'Final Year Project Help', participants: pickRandom(nonAdminUids, 6) },
+    { name: 'EEE Study Group', participants: pickRandom(nonAliceUids, 8), listed: true, maxCapacity: 15, purpose: 'study', tags: ['study', 'EEE', 'exam prep'] },
+    { name: 'Final Year Project Help', participants: pickRandom(nonAliceUids, 6), listed: true, maxCapacity: 12, purpose: 'study', tags: ['FYP', 'research', 'thesis'] },
+    { name: 'Signal Processing Enthusiasts', participants: pickRandom(nonAliceUids, 4), listed: true, maxCapacity: 10, purpose: 'study', tags: ['signal processing', 'DSP', 'ML'] },
+    { name: 'Power Systems Discussion', participants: pickRandom(nonAliceUids, 3), listed: true, maxCapacity: 8, purpose: 'networking', tags: ['power', 'renewable energy', 'smart grid'] },
+    { name: 'IC Design Cohort', participants: pickRandom(nonAliceUids, 5), listed: true, maxCapacity: 10, purpose: 'study', tags: ['VLSI', 'ASIC', 'IC design'] },
+    { name: 'Career Networking Hub', participants: pickRandom(nonAliceUids, 4), listed: true, maxCapacity: 20, purpose: 'networking', tags: ['careers', 'networking', 'alumni'] },
   ];
 
   const chatConversations = [
     ['Hey everyone! How is the revision going?', 'Pretty good, just finished Chapter 3.', 'Anyone want to study together this weekend?', 'Count me in!', 'Same here, library at 2pm?', 'Sounds good, see you all there!'],
     ['Has anyone started on the FYP proposal?', 'Yes, I submitted mine last week.', 'Any tips on choosing a supervisor?', 'Pick someone whose research interests align with yours.', 'Prof Lee is great for signal processing topics.', 'Thanks for the advice!', 'Good luck everyone!'],
+    ['Welcome to the signal processing group!', 'Excited to be here!', 'Anyone working on audio ML?', 'Yes, I am researching speech enhancement.'],
+    ['Hi all, let us discuss smart grid technologies.', 'Great topic! I have been reading about microgrids.', 'Anyone interested in solar integration?'],
+    ['Welcome IC designers!', 'Has anyone used Cadence Virtuoso?', 'Yes, I use it daily at work.', 'Any tips for analog layout?', 'Start with matching and symmetry.'],
+    ['Hello everyone! This group is for career networking.', 'Great idea! I am looking for internship advice.', 'Happy to help, I have been through the process recently.', 'Thanks, really appreciate it!'],
   ];
 
   for (let i = 0; i < groupChats.length; i++) {
@@ -427,8 +447,14 @@ async function seed() {
       participants: gc.participants,
       name: gc.name,
       createdBy: creator,
+      owner: creator,
       matchType: 'manual',
       cohortYear: null,
+      listed: gc.listed || false,
+      maxCapacity: gc.maxCapacity || null,
+      purpose: gc.purpose || null,
+      tags: gc.tags || [],
+      unreadCount: {},
       lastMessage: {
         text: conv[conv.length - 1],
         senderId: lastSender,
@@ -457,7 +483,7 @@ async function seed() {
   }
 
   // 10 Direct chats
-  console.log('\n7. Creating direct chats...');
+  console.log('\nCreating direct chats...');
 
   const directMessageTemplates = [
     ['Hi! Are you in Prof Tan\'s class?', 'Yes! Are you taking EE4013 too?', 'Yeah, want to form a study group?', 'Sure, that would be great!'],
@@ -498,8 +524,10 @@ async function seed() {
         participants,
         name: null,
         createdBy: uid,
+        owner: null,
         matchType: 'manual',
         cohortYear: null,
+        unreadCount: {},
         lastMessage: {
           text: conv[conv.length - 1],
           senderId: lastSender,
@@ -530,13 +558,71 @@ async function seed() {
   }
   console.log(`  Created ${directChatCount} direct chats with messages`);
 
+  // Seed chat requests (person-to-person discovery requests)
+  console.log('\nCreating chat requests...');
+  const chatRequestSeeds = [
+    { sender: 'bob@e.ntu.edu.sg', recipient: 'alice@e.ntu.edu.sg', status: 'pending', introNote: 'Hi Alice! We have similar interests in Signal Processing. Would love to connect!' },
+    { sender: 'david@e.ntu.edu.sg', recipient: 'alice@e.ntu.edu.sg', status: 'pending', introNote: 'Hey, saw we are both in EEE. Want to study together?' },
+    { sender: 'emily@e.ntu.edu.sg', recipient: 'frank@e.ntu.edu.sg', status: 'accepted', introNote: null },
+    { sender: 'grace@e.ntu.edu.sg', recipient: 'henry@e.ntu.edu.sg', status: 'declined', introNote: 'Hi! Interested in collaborating on IoT projects.' },
+    { sender: 'iris@e.ntu.edu.sg', recipient: 'jack@e.ntu.edu.sg', status: 'pending', introNote: null },
+  ];
+
+  for (const cr of chatRequestSeeds) {
+    const senderUid = uidMap[cr.sender];
+    const recipientUid = uidMap[cr.recipient];
+    const senderData = USERS.find((u) => u.email === cr.sender);
+    const recipientData = USERS.find((u) => u.email === cr.recipient);
+    await db.collection('chatRequests').add({
+      senderId: senderUid,
+      senderName: senderData.displayName,
+      recipientId: recipientUid,
+      recipientName: recipientData.displayName,
+      introNote: cr.introNote,
+      status: cr.status,
+      chatId: null,
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+    console.log(`  Chat request: ${senderData.displayName} → ${recipientData.displayName} (${cr.status})`);
+  }
+
+  // Seed group join requests
+  console.log('\nCreating group join requests...');
+  const groupJoinSeeds = [
+    { user: 'karen@e.ntu.edu.sg', status: 'pending' },
+    { user: 'lucas@e.ntu.edu.sg', status: 'pending' },
+    { user: 'megan@e.ntu.edu.sg', status: 'declined' },
+  ];
+
+  // Get first group chat ID for join requests
+  const groupChatsSnap = await db.collection('chats').where('type', '==', 'group').limit(1).get();
+  if (!groupChatsSnap.empty) {
+    const groupChatDoc = groupChatsSnap.docs[0];
+    const groupChatData = groupChatDoc.data();
+    for (const gjr of groupJoinSeeds) {
+      const userUid = uidMap[gjr.user];
+      const userData = USERS.find((u) => u.email === gjr.user);
+      await db.collection('groupJoinRequests').add({
+        userId: userUid,
+        userName: userData.displayName,
+        chatId: groupChatDoc.id,
+        groupName: groupChatData.name,
+        status: gjr.status,
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+      console.log(`  Group join request: ${userData.displayName} → ${groupChatData.name} (${gjr.status})`);
+    }
+  }
+
   // Completion Message
   console.log('\n=== Seed complete! ===');
   console.log(`\nTest accounts (password for all: ${PASSWORD}):`);
   for (const u of USERS) {
     const pad = u.email.padEnd(22);
     const role = u.role.padEnd(8);
-    console.log(`  ${pad} (${role}) — uid: ${uidMap[u.email]}`);
+    console.log(`  ${pad} (${role}): uid: ${uidMap[u.email]}`);
   }
   console.log('');
 }

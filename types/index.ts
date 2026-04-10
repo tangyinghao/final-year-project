@@ -1,6 +1,6 @@
 import { Timestamp } from 'firebase/firestore';
 
-// ── User ──────────────────────────────────────────────────────────────
+//  User 
 export type UserRole = 'student' | 'alumni' | 'admin';
 export type UserStatus = 'active' | 'suspended';
 
@@ -8,21 +8,24 @@ export interface UserProfile {
   uid: string;
   email: string;
   displayName: string;
+  displayNameLower?: string;
   role: UserRole;
   profilePhoto: string | null;
   programme: string;
   graduationYear: number | null;
   interests: string[];
+  languages?: string[];
   bio: string;
   status: UserStatus;
   onboarded: boolean;
+  matchingEnabled?: boolean;
   expoPushToken: string | null;
   notificationsEnabled: boolean;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
 
-// ── Chat ──────────────────────────────────────────────────────────────
+//  Chat 
 export type ChatType = 'direct' | 'group' | 'cohort';
 export type MatchType = 'manual' | 'algorithm';
 
@@ -43,6 +46,12 @@ export interface Chat {
   cohortYear: number | null;
   groupPhoto?: string | null;
   lastMessage: LastMessage | null;
+  unreadCount: Record<string, number>;
+  owner: string | null;
+  listed?: boolean;
+  maxCapacity?: number | null;
+  purpose?: string | null;
+  tags?: string[];
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -62,7 +71,7 @@ export interface Message {
   readBy: string[];
 }
 
-// ── Cohort ────────────────────────────────────────────────────────────
+//  Cohort 
 export interface Cohort {
   year: number;
   memberIds: string[];
@@ -71,7 +80,7 @@ export interface Cohort {
   updatedAt: Timestamp;
 }
 
-// ── Event ─────────────────────────────────────────────────────────────
+//  Event 
 export type EventType = 'official' | 'user-created';
 export type ModerationStatus = 'pending' | 'approved' | 'rejected';
 
@@ -93,7 +102,7 @@ export interface AppEvent {
   updatedAt: Timestamp;
 }
 
-// ── Job ───────────────────────────────────────────────────────────────
+//  Job 
 export interface Job {
   id: string;
   title: string;
@@ -116,7 +125,7 @@ export interface JobApplication {
   appliedAt: Timestamp;
 }
 
-// ── Mentorship ────────────────────────────────────────────────────────
+//  Mentorship 
 export interface Mentorship {
   id: string;
   title: string;
@@ -141,7 +150,7 @@ export interface MentorshipRequest {
   status: 'pending' | 'accepted' | 'declined';
 }
 
-// ── Report ────────────────────────────────────────────────────────────
+//  Report 
 export interface Report {
   id: string;
   reportedUserId: string;
@@ -154,7 +163,7 @@ export interface Report {
   reviewedBy: string | null;
 }
 
-// ── Notification ──────────────────────────────────────────────────────
+//  Notification 
 export type NotificationType = 'message' | 'event' | 'approval' | 'report' | 'system';
 
 export interface AppNotification {
@@ -171,14 +180,14 @@ export interface AppNotification {
   createdAt: Timestamp;
 }
 
-// ── Saved Items ───────────────────────────────────────────────────────
+//  Saved Items 
 export interface SavedItem {
   itemId: string;
   itemType: 'job' | 'mentorship';
   savedAt: Timestamp;
 }
 
-// ── Footprint ─────────────────────────────────────────────────────────
+//  Footprint 
 export type FootprintMapType = 'ntu' | 'singapore';
 
 export interface FootprintCheckin {
@@ -188,24 +197,62 @@ export interface FootprintCheckin {
   checkedInAt: Timestamp;
 }
 
-// ── Smart Matching ────────────────────────────────────────────────────
-export interface MatchRequest {
-  mode: 'individual' | 'group';
-  currentUserId: string;
-  preferences: {
-    interests?: string[];
-    groupSize?: number;
-    programme?: string;
-    graduationYear?: number | null;
-  };
+//  Smart Match Discovery
+export type MatchPurpose = 'friends' | 'study' | 'networking' | 'mentorship' | 'mixed';
+
+export type ChatRequestStatus = 'pending' | 'accepted' | 'declined' | 'cancelled';
+
+export interface ChatRequest {
+  id: string;
+  senderId: string;
+  senderName: string;
+  recipientId: string;
+  recipientName: string;
+  introNote: string | null;
+  status: ChatRequestStatus;
+  chatId: string | null;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }
 
-export interface MatchResult {
-  userIds: string[];
+export type GroupJoinRequestStatus = 'pending' | 'approved' | 'declined' | 'cancelled';
+
+export interface GroupJoinRequest {
+  id: string;
+  userId: string;
+  userName: string;
+  chatId: string;
+  groupName: string;
+  status: GroupJoinRequestStatus;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+export interface DiscoveryResult {
+  userId: string;
+  displayName: string;
+  profilePhoto: string | null;
+  programme: string;
+  role: UserRole;
   score: number;
-  explanation: string[];
+  reasons: string[];
 }
 
-export interface MatchResponse {
-  matches: MatchResult[];
+export interface GroupDiscoveryResult {
+  chatId: string;
+  name: string;
+  purpose: string | null;
+  tags: string[];
+  memberCount: number;
+  maxCapacity: number | null;
+  ownerName: string;
+  score: number;
+  reasons: string[];
+  members: {
+    uid: string;
+    displayName: string;
+    profilePhoto: string | null;
+  }[];
+  memberPhotos: (string | null)[];
+  memberNames: string[];
 }

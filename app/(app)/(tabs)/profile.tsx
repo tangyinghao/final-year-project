@@ -3,14 +3,11 @@ import { FootprintPromoCard } from '@/components/profile/FootprintPromoCard';
 import { ProfileSummaryRow } from '@/components/profile/ProfileSummaryRow';
 import { SettingsRow } from '@/components/profile/SettingsRow';
 import { DangerOutlineButton } from '@/components/ui/DangerOutlineButton';
-import { FEATURE_FLAGS } from '@/constants/featureFlags';
 import { useAuth } from '@/context/authContext';
-import { registerForPushNotificationsAsync, removePushToken, savePushToken } from '@/services/pushNotificationService';
-import { updateUserProfile } from '@/services/userService';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect, useState } from 'react';
-import { Alert, ScrollView, View } from 'react-native';
+import React from 'react';
+import { ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const MENU_ITEMS = [
@@ -20,52 +17,6 @@ const MENU_ITEMS = [
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, logout } = useAuth();
-  const [notifEnabled, setNotifEnabled] = useState(user?.notificationsEnabled ?? true);
-  const [toggling, setToggling] = useState(false);
-
-  useEffect(() => {
-    if (!FEATURE_FLAGS.notificationsEnabled) return;
-    if (!user?.uid || !notifEnabled) return;
-    (async () => {
-      try {
-        const token = await registerForPushNotificationsAsync();
-        if (token && token !== user.expoPushToken) {
-          await savePushToken(user.uid, token);
-        }
-      } catch (e) {
-        console.log('Push token registration skipped:', e);
-      }
-    })();
-  }, [user?.uid, user?.expoPushToken, notifEnabled]);
-
-  const handleToggleNotifications = async (value: boolean) => {
-    if (!user?.uid || toggling) return;
-    if (!FEATURE_FLAGS.notificationsEnabled) {
-      Alert.alert('Not Available', 'Notifications are temporarily disabled in this app build.');
-      return;
-    }
-    setToggling(true);
-    try {
-      if (value) {
-        const token = await registerForPushNotificationsAsync();
-        if (!token) {
-          Alert.alert('Permission Required', 'Push notifications require a development build. They are not supported in Expo Go.');
-          setToggling(false);
-          return;
-        }
-        await savePushToken(user.uid, token);
-      } else {
-        await removePushToken(user.uid);
-      }
-      await updateUserProfile(user.uid, { notificationsEnabled: value } as any);
-      setNotifEnabled(value);
-    } catch {
-      Alert.alert('Not Available', 'Push notifications require a development build and are not supported in Expo Go.');
-    } finally {
-      setToggling(false);
-    }
-  };
-
   const roleBadge = user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Student';
 
   return (

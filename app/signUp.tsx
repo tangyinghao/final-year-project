@@ -23,6 +23,10 @@ export default function SignUp() {
       Alert.alert('Sign Up', 'Please fill in all required fields.');
       return;
     }
+    if (!/^[^\s@]+@e\.ntu\.edu\.sg$/i.test(email.trim())) {
+      Alert.alert('Sign Up', 'Please use a valid NTU email address (e.g. username@e.ntu.edu.sg).');
+      return;
+    }
     if (!graduationYear.trim()) {
       Alert.alert('Sign Up', 'Please enter your graduation year.');
       return;

@@ -2,38 +2,38 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
-    // ── Profile photos ──────────────────────────────────────────────
+    //  Profile photos 
     match /profile-photos/{fileName} {
       allow read: if request.auth != null;
       allow write: if request.auth != null
         && fileName.matches(request.auth.uid + '.*');
     }
 
-    // ── Event images ────────────────────────────────────────────────
+    //  Event images 
     match /event-images/{fileName} {
       allow read: if request.auth != null;
       allow write: if request.auth != null;
     }
 
-    // ── Chat images ─────────────────────────────────────────────────
+    //  Chat images 
     match /chat-images/{chatId}/{fileName} {
       allow read: if request.auth != null;
       allow write: if request.auth != null;
     }
 
-    // ── Chat files ─────────────────────────────────────────────────
+    //  Chat files 
     match /chat-files/{chatId}/{fileName} {
       allow read: if request.auth != null;
       allow write: if request.auth != null;
     }
 
-    // ── Chat group photos ────────────────────────────────────────
+    //  Chat group photos 
     match /chat-group-photos/{chatId}/{fileName} {
       allow read: if request.auth != null;
       allow write: if request.auth != null;
     }
 
-    // ── CV uploads ──────────────────────────────────────────────────
+    //  CV uploads 
     match /cv-uploads/{uid}/{filename} {
       allow read: if request.auth != null && request.auth.uid == uid;
       allow write: if request.auth != null && request.auth.uid == uid;

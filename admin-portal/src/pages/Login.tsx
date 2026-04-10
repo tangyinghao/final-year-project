@@ -59,7 +59,7 @@ export function Login() {
                 type="email"
                 required
                 className="w-full bg-[#f6f6f6] border border-transparent focus:border-[#1b1c62] focus:bg-white rounded-xl px-4 py-3 outline-none transition-colors"
-                placeholder="admin@test.com"
+                placeholder="admin@e.ntu.edu.sg"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
               />

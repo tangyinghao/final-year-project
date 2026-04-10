@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
-  KeyboardAvoidingView, Platform, Image, Alert, ActivityIndicator,
+  KeyboardAvoidingView, Platform, Image, Alert, ActivityIndicator, Switch,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
@@ -15,10 +15,39 @@ import { widthPercentageToDP as wp } from 'react-native-responsive-screen'
 export default function OnboardingScreen() {
   const { user, refreshUserProfile } = useAuth()
 
-  const [bio, setBio] = useState('')
-  const [major, setMajor] = useState('')
+  const [bio, setBio] = useState(user?.bio || '')
+  const [major, setMajor] = useState(user?.programme || '')
   const [photoUri, setPhotoUri] = useState<string | null>(null)
+  const [languages, setLanguages] = useState<string[]>(user?.languages?.length ? user.languages : ['English'])
+  const [interests, setInterests] = useState<string[]>(user?.interests || [])
+  const [matchingEnabled, setMatchingEnabled] = useState(user?.matchingEnabled ?? true)
   const [saving, setSaving] = useState(false)
+
+  const LANGUAGE_SUGGESTIONS = ['English', 'Mandarin', 'Malay', 'Tamil', 'Hindi']
+  const INTEREST_SUGGESTIONS = [
+    'Signal Processing', 'Machine Learning', 'IoT', 'Power Systems',
+    'Renewable Energy', '5G', 'IC Design', 'VLSI', 'ASIC', 'Communications',
+    'RF Design', 'Computer Control', 'Automation', 'Microelectronics',
+    'Semiconductors', 'Green Electronics', 'Robotics', 'Networking',
+    'Mentoring', 'EVs', 'Battery', 'Antenna Design', 'Sensors', 'FPGA',
+    'Firmware', 'Audio', 'Radar', 'RTOS',
+  ]
+
+  const toggleInterest = (interest: string) => {
+    if (interests.includes(interest)) {
+      setInterests(interests.filter((i) => i !== interest))
+    } else {
+      setInterests([...interests, interest])
+    }
+  }
+
+  const toggleLanguage = (lang: string) => {
+    if (languages.includes(lang)) {
+      setLanguages(languages.filter((l) => l !== lang))
+    } else {
+      setLanguages([...languages, lang])
+    }
+  }
 
   const pickPhoto = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -44,6 +73,9 @@ export default function OnboardingScreen() {
         bio: bio.trim(),
         programme: major.trim(),
         profilePhoto: profilePhotoUrl,
+        languages,
+        interests,
+        matchingEnabled,
         onboarded: true,
       })
       await refreshUserProfile()
@@ -92,12 +124,12 @@ export default function OnboardingScreen() {
               <View className="gap-4">
                 <View className="gap-1">
                   <Text className="text-[16px] text-text-secondary" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>
-                    Programme / Major
+                    Specialisation Pathway
                   </Text>
                   <TextInput
                     className="border border-border-default rounded-xl px-4 py-3 text-[16px] text-black bg-white"
                     style={{ fontFamily: 'PlusJakartaSans-Regular' }}
-                    placeholder="e.g. Computer Science"
+                    placeholder="e.g. Signal Processing & Machine Learning"
                     value={major}
                     onChangeText={setMajor}
                   />
@@ -115,6 +147,63 @@ export default function OnboardingScreen() {
                     value={bio}
                     onChangeText={setBio}
                     multiline
+                  />
+                </View>
+
+                <View className="gap-1">
+                  <Text className="text-[16px] text-text-secondary" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>
+                    Languages
+                  </Text>
+                  <View className="flex-row flex-wrap gap-2">
+                    {LANGUAGE_SUGGESTIONS.map((lang) => {
+                      const isSelected = languages.includes(lang)
+                      return (
+                        <TouchableOpacity
+                          key={lang}
+                          className={`px-4 py-2 rounded-full border ${isSelected ? 'bg-ntu-primary border-ntu-primary' : 'bg-[#F6F6F6] border-[#D9D9D9]'}`}
+                          onPress={() => toggleLanguage(lang)}
+                        >
+                          <Text className={`text-[14px] ${isSelected ? 'text-white' : 'text-black'}`} style={{ fontFamily: 'PlusJakartaSans-Medium' }}>{lang}</Text>
+                        </TouchableOpacity>
+                      )
+                    })}
+                  </View>
+                </View>
+
+                <View className="gap-1">
+                  <Text className="text-[16px] text-text-secondary" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>
+                    Interests
+                  </Text>
+                  <View className="flex-row flex-wrap gap-2">
+                    {INTEREST_SUGGESTIONS.map((interest) => {
+                      const isSelected = interests.includes(interest)
+                      return (
+                        <TouchableOpacity
+                          key={interest}
+                          className={`px-4 py-2 rounded-full border ${isSelected ? 'bg-ntu-primary border-ntu-primary' : 'bg-[#F6F6F6] border-[#D9D9D9]'}`}
+                          onPress={() => toggleInterest(interest)}
+                        >
+                          <Text className={`text-[14px] ${isSelected ? 'text-white' : 'text-black'}`} style={{ fontFamily: 'PlusJakartaSans-Medium' }}>{interest}</Text>
+                        </TouchableOpacity>
+                      )
+                    })}
+                  </View>
+                </View>
+
+                <View className="flex-row items-center justify-between py-2">
+                  <View className="flex-1 mr-4">
+                    <Text className="text-[16px] text-text-secondary" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>
+                      Enable Smart Match
+                    </Text>
+                    <Text className="text-[13px] text-[#8E8E93] mt-0.5" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>
+                      Let others discover you based on your profile.
+                    </Text>
+                  </View>
+                  <Switch
+                    value={matchingEnabled}
+                    onValueChange={setMatchingEnabled}
+                    trackColor={{ false: '#E5E5EA', true: '#1B1C62' }}
+                    thumbColor="white"
                   />
                 </View>
               </View>

@@ -2,7 +2,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Helpers ──────────────────────────────────────────────────────
+    //  Helpers 
     function isAuth() {
       return request.auth != null;
     }
@@ -18,7 +18,7 @@ service cloud.firestore {
       return y == null || (y is int && y >= 1991 && y <= currentYear + 6);
     }
 
-    // ── users/{uid} ─────────────────────────────────────────────────
+    //  users/{uid} 
     match /users/{uid} {
       allow read: if isAuth();
       allow create: if isOwner(uid) && validGradYear();
@@ -39,22 +39,28 @@ service cloud.firestore {
       }
     }
 
-    // ── cohorts/{year} ──────────────────────────────────────────────
+    //  cohorts/{year} 
     match /cohorts/{year} {
       allow read: if isAuth();
       allow create, update, delete: if false; // backend-managed only
     }
 
-    // ── chats/{chatId} ──────────────────────────────────────────────
+    //  chats/{chatId}
     match /chats/{chatId} {
       allow read: if isAuth() && request.auth.uid in resource.data.participants;
       allow create: if isAuth()
         && request.auth.uid in request.resource.data.participants
         && request.resource.data.type in ['direct', 'group'];
+      // Owner-only fields: listed, maxCapacity, purpose, tags
       allow update: if isAuth()
         && request.auth.uid in resource.data.participants
         && !request.resource.data.diff(resource.data).affectedKeys()
-            .hasAny(['type', 'cohortYear']);
+            .hasAny(['type', 'cohortYear'])
+        && (
+          !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['listed', 'maxCapacity', 'purpose', 'tags'])
+          || resource.data.owner == request.auth.uid
+        );
       allow delete: if false;
 
       // messages subcollection
@@ -68,7 +74,7 @@ service cloud.firestore {
       }
     }
 
-    // ── events/{eventId} ────────────────────────────────────────────
+    //  events/{eventId} 
     match /events/{eventId} {
       allow read: if isAuth()
         && (resource.data.status == 'approved' || resource.data.createdBy == request.auth.uid);
@@ -87,7 +93,7 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // ── jobs/{jobId} ────────────────────────────────────────────────
+    //  jobs/{jobId} 
     match /jobs/{jobId} {
       allow read: if isAuth()
         && (resource.data.status == 'approved' || resource.data.postedBy == request.auth.uid);
@@ -110,7 +116,7 @@ service cloud.firestore {
       }
     }
 
-    // ── mentorships/{mentorshipId} ──────────────────────────────────
+    //  mentorships/{mentorshipId} 
     match /mentorships/{mentorshipId} {
       allow read: if isAuth()
         && (resource.data.status == 'approved' || resource.data.mentorId == request.auth.uid);
@@ -133,7 +139,7 @@ service cloud.firestore {
       }
     }
 
-    // ── reports/{reportId} ──────────────────────────────────────────
+    //  reports/{reportId} 
     match /reports/{reportId} {
       allow read: if false; // admin reads via backend/admin SDK
       allow create: if isAuth()
@@ -141,7 +147,51 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // ── notifications/{notifId} ─────────────────────────────────────
+    //  chatRequests/{requestId}
+    match /chatRequests/{requestId} {
+      allow read: if isAuth()
+        && (resource.data.senderId == request.auth.uid
+            || resource.data.recipientId == request.auth.uid);
+      allow create: if isAuth()
+        && request.resource.data.senderId == request.auth.uid
+        && request.resource.data.status == 'pending';
+      allow update: if isAuth()
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['status', 'updatedAt'])
+        && (
+          // Recipient can accept or decline
+          (resource.data.recipientId == request.auth.uid
+            && resource.data.status == 'pending'
+            && request.resource.data.status in ['accepted', 'declined'])
+          ||
+          // Sender can cancel
+          (resource.data.senderId == request.auth.uid
+            && resource.data.status == 'pending'
+            && request.resource.data.status == 'cancelled')
+        );
+      allow delete: if false;
+    }
+
+    //  groupJoinRequests/{requestId}
+    match /groupJoinRequests/{requestId} {
+      allow read: if isAuth();
+      allow create: if isAuth()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == 'pending';
+      allow update: if isAuth()
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['status', 'updatedAt'])
+        && (
+          // Requester can cancel
+          (resource.data.userId == request.auth.uid
+            && resource.data.status == 'pending'
+            && request.resource.data.status == 'cancelled')
+        );
+      // Owner approve/decline handled by Cloud Function
+      allow delete: if false;
+    }
+
+    //  notifications/{notifId} 
     match /notifications/{notifId} {
       allow read: if isAuth() && resource.data.userId == request.auth.uid;
       allow create: if false; // backend only

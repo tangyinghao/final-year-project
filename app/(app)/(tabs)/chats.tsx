@@ -3,7 +3,6 @@ import { FlatList, Platform, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
-import * as Notifications from 'expo-notifications';
 import { ScreenHeader } from '@/components/navigation/ScreenHeader';
 import { ChatListItem } from '@/components/chat/ChatListItem';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -11,7 +10,6 @@ import { SearchBar } from '@/components/ui/SearchBar';
 import { useAuth } from '@/context/authContext';
 import { subscribeToChats } from '@/services/chatService';
 import { getUsersByIds } from '@/services/userService';
-import { FEATURE_FLAGS } from '@/constants/featureFlags';
 import { Chat, UserProfile } from '@/types';
 
 export default function ChatsScreen() {
@@ -62,15 +60,6 @@ export default function ChatsScreen() {
     return 'Yesterday';
   };
 
-  useEffect(() => {
-    if (!FEATURE_FLAGS.notificationsEnabled) return;
-    let total = 0;
-    chats.forEach((chat) => {
-      const count = (chat as any).unreadCount?.[user?.uid || ''] || 0;
-      total += count;
-    });
-    Notifications.setBadgeCountAsync(total).catch(() => {});
-  }, [chats, user?.uid]);
 
   const filteredChats = chats.filter((chat) => {
     if (!searchQuery) return true;

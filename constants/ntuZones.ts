@@ -1,9 +1,3 @@
-/**
- * NTU Campus Zones - Simplified SVG path data for interactive map.
- * Each zone is a clickable region rendered as an SVG polygon/path.
- * Coordinates are relative to a 400x500 viewBox representing the NTU campus layout.
- */
-
 export interface ZoneData {
   id: string;
   name: string;
@@ -13,11 +7,12 @@ export interface ZoneData {
   // Label position (center of zone)
   labelX: number;
   labelY: number;
+  // Optional per-zone label sizing, mainly used by dense SVG maps like Singapore
+  fontSize?: number;
 }
 
 // NTU campus zones arranged in approximate geographic layout
 export const NTU_ZONES: ZoneData[] = [
-  // ── Halls of Residence ──
   {
     id: 'hall-1',
     name: 'Hall 1',
@@ -146,7 +141,7 @@ export const NTU_ZONES: ZoneData[] = [
     labelX: 60,
     labelY: 215,
   },
-  // ── Academic Buildings ──
+  //  Academic Buildings 
   {
     id: 'north-spine',
     name: 'North Spine',
