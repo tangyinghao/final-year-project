@@ -32,9 +32,15 @@ export default function SmartMatchScreen() {
   const [loadingGroup, setLoadingGroup] = useState(true);
   const [groupIdx, setGroupIdx] = useState(0);
 
+  const matchingEnabled = user?.matchingEnabled === true;
+
   // Fetch all individual results once
   useEffect(() => {
     if (!user?.uid) return;
+    if (!matchingEnabled) {
+      setLoadingPerson(false);
+      return;
+    }
     (async () => {
       setLoadingPerson(true);
       try {
@@ -46,11 +52,15 @@ export default function SmartMatchScreen() {
         setLoadingPerson(false);
       }
     })();
-  }, [user?.uid]);
+  }, [user?.uid, matchingEnabled]);
 
   // Fetch all group results once
   useEffect(() => {
     if (!user?.uid) return;
+    if (!matchingEnabled) {
+      setLoadingGroup(false);
+      return;
+    }
     (async () => {
       setLoadingGroup(true);
       try {
@@ -129,7 +139,27 @@ export default function SmartMatchScreen() {
         <SegmentedControl options={['Individual', 'Group']} value={activeTab} onChange={setActiveTab} />
       </View>
 
-      {isLoading ? (
+      {!matchingEnabled ? (
+        <View className="flex-1 items-center justify-center px-8">
+          <View className="w-16 h-16 bg-[#EBF4FE] rounded-full items-center justify-center mb-4">
+            <Ionicons name="eye-off-outline" size={32} color="#1B1C62" />
+          </View>
+          <Text className="text-[18px] font-bold text-black text-center mb-2" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
+            Smart Match is off
+          </Text>
+          <Text className="text-[14px] text-[#8E8E93] text-center mb-4" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>
+            Turn on matching in your profile settings to discover people and groups.
+          </Text>
+          <TouchableOpacity
+            onPress={() => router.push('/(app)/profile/edit')}
+            className="bg-[#1B1C62] px-5 py-3 rounded-full"
+          >
+            <Text className="text-white text-[14px] font-bold" style={{ fontFamily: 'PlusJakartaSans-Bold' }}>
+              Go to profile settings
+            </Text>
+          </TouchableOpacity>
+        </View>
+      ) : isLoading ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color="#1B1C62" />
           <Text className="text-[15px] text-[#8E8E93] mt-3" style={{ fontFamily: 'PlusJakartaSans-Regular' }}>

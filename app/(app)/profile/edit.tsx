@@ -19,7 +19,7 @@ export default function EditProfileScreen() {
   const [major, setMajor] = useState(user?.programme || '');
   const [languages, setLanguages] = useState<string[]>(user?.languages || []);
   const [interests, setInterests] = useState<string[]>(user?.interests || []);
-  const [matchingEnabled, setMatchingEnabled] = useState(user?.matchingEnabled ?? false);
+  const [matchingEnabled, setMatchingEnabled] = useState(user?.matchingEnabled ?? true);
   const [saving, setSaving] = useState(false);
 
   const LANGUAGE_SUGGESTIONS = ['English', 'Mandarin', 'Malay', 'Tamil', 'Hindi'];

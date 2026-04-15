@@ -15,6 +15,7 @@ type ScreenHeaderProps = {
   rightLoading?: boolean;
   showBorder?: boolean;
   className?: string;
+  rightContent?: React.ReactNode;
 };
 
 export function ScreenHeader({
@@ -29,6 +30,7 @@ export function ScreenHeader({
   rightLoading,
   showBorder,
   className = '',
+  rightContent,
 }: ScreenHeaderProps) {
   return (
     <View className={`flex-row items-center justify-between bg-white px-4 py-3 ${showBorder ? 'border-b border-border-default' : ''} ${className}`}>
@@ -47,6 +49,8 @@ export function ScreenHeader({
           <View className="h-10 w-10 items-center justify-center">
             <ActivityIndicator size="small" color={Theme.colors.brand.primary} />
           </View>
+        ) : rightContent ? (
+          rightContent
         ) : rightIconName || rightLabel ? (
           <HeaderActionButton iconName={rightIconName} label={rightLabel} onPress={onRightPress} disabled={rightDisabled} className="-mr-2" />
         ) : (

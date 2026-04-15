@@ -109,7 +109,13 @@ service cloud.firestore {
           && (request.auth.uid == applicantId
               || request.auth.uid == get(/databases/$(database)/documents/jobs/$(jobId)).data.postedBy);
         allow create: if isAuth() && request.auth.uid == applicantId;
-        allow update, delete: if false;
+        // Poster can update (accept/decline). Applicant can re-submit their own
+        // application by setting status back to 'pending'.
+        allow update: if isAuth() && (
+          request.auth.uid == get(/databases/$(database)/documents/jobs/$(jobId)).data.postedBy
+          || (request.auth.uid == applicantId && request.resource.data.status == 'pending')
+        );
+        allow delete: if false;
       }
     }
 
@@ -132,7 +138,13 @@ service cloud.firestore {
           && (request.auth.uid == requesterId
               || request.auth.uid == get(/databases/$(database)/documents/mentorships/$(mentorshipId)).data.mentorId);
         allow create: if isAuth() && request.auth.uid == requesterId;
-        allow update, delete: if false;
+        // Mentor can update (accept/decline). Requester can re-submit their own
+        // request by setting status back to 'pending'.
+        allow update: if isAuth() && (
+          request.auth.uid == get(/databases/$(database)/documents/mentorships/$(mentorshipId)).data.mentorId
+          || (request.auth.uid == requesterId && request.resource.data.status == 'pending')
+        );
+        allow delete: if false;
       }
     }
 

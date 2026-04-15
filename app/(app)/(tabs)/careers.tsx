@@ -1,15 +1,17 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, RefreshControl, View } from 'react-native';
+import { ActivityIndicator, FlatList, RefreshControl, View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { CareerCard } from '@/components/careers/CareerCard';
 import { FilterChipRow } from '@/components/careers/FilterChipRow';
 import { SegmentedControl } from '@/components/careers/SegmentedControl';
 import { ScreenHeader } from '@/components/navigation/ScreenHeader';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useSavedItems } from '@/hooks/useSavedItems';
+import { useAuth } from '@/context/authContext';
 import { getApprovedJobs, getApprovedMentorships } from '@/services/careerService';
 import { Job, Mentorship } from '@/types';
 import { Theme } from '@/constants/theme';
@@ -18,6 +20,7 @@ const TAGS = ['All', 'Saved', 'Communications', 'Computer Control', 'Electronics
 
 export default function CareersScreen() {
   const router = useRouter();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('Jobs');
   const [activeTag, setActiveTag] = useState('All');
   const { savedItems, toggleSave, refreshSaved } = useSavedItems();
@@ -62,7 +65,22 @@ export default function CareersScreen() {
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-white">
       <StatusBar style="dark" />
-      <ScreenHeader title="Careers" rightIconName="add" onRightPress={() => router.push('/careers/jobs/submit')} className="pb-4" />
+      <ScreenHeader
+        title="Careers"
+        className="pb-4"
+        rightContent={
+          <View className="flex-row items-center gap-1 -mr-2">
+            {user?.role === 'alumni' && (
+              <TouchableOpacity onPress={() => router.push('/careers/manage' as any)} className="w-10 h-10 items-center justify-center">
+                <Ionicons name="folder-open-outline" size={24} color={Theme.colors.brand.primary} />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity onPress={() => router.push('/careers/jobs/submit' as any)} className="w-10 h-10 items-center justify-center">
+              <Ionicons name="add" size={28} color={Theme.colors.brand.primary} />
+            </TouchableOpacity>
+          </View>
+        }
+      />
 
       <View className="px-4 pb-4">
         <SegmentedControl options={['Jobs', 'Mentorship']} value={activeTab} onChange={setActiveTab} />

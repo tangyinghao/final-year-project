@@ -64,8 +64,9 @@ export default function JobDetailScreen() {
       setHasApplied(true);
       setShowApplyDialog(false);
       Alert.alert('Application Submitted', 'Your profile has been sent to the employer.');
-    } catch (e) {
-      Alert.alert('Error', 'Failed to submit application.');
+    } catch (e: any) {
+      console.error('[jobApply] failed', { jobId: job?.id, uid: user?.uid, code: e?.code, message: e?.message, e });
+      Alert.alert('Error', `Failed to submit application.\n\n${e?.code || ''} ${e?.message || ''}`);
     } finally {
       setApplying(false);
       setUploadingCv(false);

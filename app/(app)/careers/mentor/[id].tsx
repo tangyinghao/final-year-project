@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useAuth } from '@/context/authContext';
 import { useSavedItems } from '@/hooks/useSavedItems';
-import { getMentorship, requestMentorship } from '@/services/careerService';
+import { getMentorship, requestMentorship, hasRequestedMentorship } from '@/services/careerService';
 import { getUsersByIds } from '@/services/userService';
 import { Mentorship, UserProfile } from '@/types';
 import { DEFAULT_AVATAR } from '@/constants/images';
@@ -32,9 +32,13 @@ export default function MentorDetailScreen() {
         const profiles = await getUsersByIds([m.mentorId]);
         if (profiles.length > 0) setMentorProfile(profiles[0]);
       }
+      if (user) {
+        const requested = await hasRequestedMentorship(mentorshipId, user.uid);
+        setHasRequested(requested);
+      }
       setLoading(false);
     })();
-  }, [mentorshipId]);
+  }, [mentorshipId, user]);
 
   const handleRequestMentorship = async () => {
     if (!user || !mentorship) return;

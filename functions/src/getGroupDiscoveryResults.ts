@@ -17,6 +17,10 @@ export const getGroupDiscoveryResults = https.onCall({ cors: true }, async (requ
   if (!callerSnap.exists) throw new https.HttpsError('not-found', 'User not found');
   const callerData = callerSnap.data()!;
 
+  if (callerData.matchingEnabled !== true) {
+    throw new https.HttpsError('failed-precondition', 'Smart Match is disabled in your profile settings.');
+  }
+
   const callerUser: UserData = {
     uid: callerId,
     displayName: callerData.displayName,
@@ -80,8 +84,7 @@ export const getGroupDiscoveryResults = https.onCall({ cors: true }, async (requ
 
     let totalScore = 0;
     let scoreCount = 0;
-    const allReasons: string[] = [];
-    const reasonKeys = new Set<string>();
+    const reasonsByKey = new Map<string, string[]>();
     const members: Array<{
       uid: string;
       displayName: string;
@@ -123,10 +126,29 @@ export const getGroupDiscoveryResults = https.onCall({ cors: true }, async (requ
       scoreCount++;
       for (const r of pair.reasons) {
         const key = getReasonKey(r);
-        if (!reasonKeys.has(key) && allReasons.length < 5) {
-          reasonKeys.add(key);
-          allReasons.push(r);
+        if (!reasonsByKey.has(key)) reasonsByKey.set(key, []);
+        reasonsByKey.get(key)!.push(r);
+      }
+    }
+
+    // Merge reasons by category: combine interests/languages, take first for others
+    const allReasons: string[] = [];
+    for (const [key, rawReasons] of reasonsByKey) {
+      if (allReasons.length >= 5) break;
+      if (key === 'shared interests') {
+        const allInterests = new Set<string>();
+        for (const r of rawReasons) {
+          r.substring('Shared interests: '.length).split(', ').forEach((i) => allInterests.add(i));
         }
+        allReasons.push(`Shared interests: ${[...allInterests].slice(0, 3).join(', ')}`);
+      } else if (key === 'shared language') {
+        const allLangs = new Set<string>();
+        for (const r of rawReasons) {
+          r.substring('Shared language: '.length).split(', ').forEach((l) => allLangs.add(l));
+        }
+        allReasons.push(`Shared language: ${[...allLangs].slice(0, 2).join(', ')}`);
+      } else {
+        allReasons.push(rawReasons[0]);
       }
     }
 

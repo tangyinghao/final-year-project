@@ -123,6 +123,7 @@ export interface JobApplication {
   applicantName: string;
   cvUrl: string | null;
   appliedAt: Timestamp;
+  status: 'pending' | 'accepted' | 'declined';
 }
 
 //  Mentorship 

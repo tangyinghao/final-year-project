@@ -53,6 +53,8 @@ export function subscribeToMessages(
     const messages: Message[] = [];
     snap.forEach((d) => messages.push({ id: d.id, ...d.data() } as Message));
     callback(messages);
+  }, () => {
+    // Silently ignore snapshot errors (e.g. permission-denied after leaving a group)
   });
 }
 

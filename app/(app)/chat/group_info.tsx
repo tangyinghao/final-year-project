@@ -328,13 +328,9 @@ export default function GroupInfoScreen() {
                 {
                   text: 'Leave',
                   style: 'destructive',
-                  onPress: async () => {
-                    try {
-                      await leaveGroup(id);
-                      router.dismiss(2);
-                    } catch (e: any) {
-                      Alert.alert('Error', e.message || 'Failed to leave group.');
-                    }
+                  onPress: () => {
+                    router.dismissAll();
+                    leaveGroup(id);
                   },
                 },
               ]);

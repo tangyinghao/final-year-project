@@ -1,5 +1,5 @@
 import { db, storage } from '@/config/firebaseConfig';
-import { Job, Mentorship } from '@/types';
+import { Job, Mentorship, JobApplication, MentorshipRequest } from '@/types';
 import {
   addDoc,
   collection,
@@ -10,6 +10,7 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  updateDoc,
   where
 } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
@@ -75,6 +76,7 @@ export async function applyToJob(
     applicantName,
     cvUrl,
     appliedAt: serverTimestamp(),
+    status: 'pending',
   });
 }
 
@@ -136,5 +138,72 @@ export async function requestMentorship(
     message,
     requestedAt: serverTimestamp(),
     status: 'pending',
+  });
+}
+
+export async function hasRequestedMentorship(mentorshipId: string, requesterId: string): Promise<boolean> {
+  const snap = await getDoc(doc(db, 'mentorships', mentorshipId, 'requests', requesterId));
+  return snap.exists();
+}
+
+//  Management 
+
+export async function getUserJobs(uid: string): Promise<Job[]> {
+  const q = query(
+    collection(db, 'jobs'),
+    where('postedBy', '==', uid),
+    orderBy('createdAt', 'desc')
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Job));
+}
+
+export async function getJobApplications(jobId: string): Promise<JobApplication[]> {
+  const q = query(
+    collection(db, 'jobs', jobId, 'applications'),
+    orderBy('appliedAt', 'desc')
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => d.data() as JobApplication);
+}
+
+export async function updateJobApplicationStatus(
+  jobId: string,
+  applicantId: string,
+  status: 'accepted' | 'declined'
+): Promise<void> {
+  await updateDoc(doc(db, 'jobs', jobId, 'applications', applicantId), {
+    status,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function getUserMentorships(uid: string): Promise<Mentorship[]> {
+  const q = query(
+    collection(db, 'mentorships'),
+    where('mentorId', '==', uid),
+    orderBy('createdAt', 'desc')
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Mentorship));
+}
+
+export async function getMentorshipRequests(mentorshipId: string): Promise<MentorshipRequest[]> {
+  const q = query(
+    collection(db, 'mentorships', mentorshipId, 'requests'),
+    orderBy('requestedAt', 'desc')
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => d.data() as MentorshipRequest);
+}
+
+export async function updateMentorshipRequestStatus(
+  mentorshipId: string,
+  requesterId: string,
+  status: 'accepted' | 'declined'
+): Promise<void> {
+  await updateDoc(doc(db, 'mentorships', mentorshipId, 'requests', requesterId), {
+    status,
+    updatedAt: serverTimestamp(),
   });
 }

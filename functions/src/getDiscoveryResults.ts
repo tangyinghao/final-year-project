@@ -17,6 +17,10 @@ export const getDiscoveryResults = https.onCall({ cors: true }, async (request) 
   if (!callerSnap.exists) throw new https.HttpsError('not-found', 'User not found');
   const callerData = callerSnap.data()!;
 
+  if (callerData.matchingEnabled !== true) {
+    throw new https.HttpsError('failed-precondition', 'Smart Match is disabled in your profile settings.');
+  }
+
   const callerUser: UserData = {
     uid: callerId,
     displayName: callerData.displayName,
