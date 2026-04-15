@@ -1,7 +1,6 @@
 import { MatchPurpose, ScoredPair, UserData } from './smartMatchTypes';
 
 //  Scoring
-
 export function scorePair(
   userA: UserData,
   userB: UserData,
@@ -25,7 +24,7 @@ export function scorePair(
     const b = userB.programme.toLowerCase();
     if (a === b) {
       raw += 20;
-      reasons.push(`Same programme: ${userA.programme}`);
+      reasons.push('Same programme: Green Electronics');
     } else if (a.includes(b) || b.includes(a)) {
       raw += 10;
       reasons.push('Related programme');

@@ -223,17 +223,6 @@ export default function OnboardingScreen() {
                     : <Text className="text-white text-[16px]" style={{ fontFamily: 'PlusJakartaSans-SemiBold' }}>Get Started</Text>
                   }
                 </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={handleContinue}
-                  disabled={saving}
-                  hitSlop={8}
-                  className="items-center py-2"
-                >
-                  <Text className="text-[14px] text-text-secondary" style={{ fontFamily: 'PlusJakartaSans-Medium' }}>
-                    Skip for now
-                  </Text>
-                </TouchableOpacity>
               </View>
 
             </View>

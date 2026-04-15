@@ -58,6 +58,9 @@ export const getGroupDiscoveryResults = https.onCall({ cors: true }, async (requ
     const normalized = reason.trim().toLowerCase();
     if (normalized.startsWith('shared interests:')) return 'shared interests';
     if (normalized.startsWith('same programme:')) return 'same programme';
+    if (normalized === 'same graduation year' || normalized === 'similar graduation year') {
+      return 'graduation year';
+    }
     if (normalized.startsWith('shared language:')) return 'shared language';
     return normalized;
   };

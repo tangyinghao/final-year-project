@@ -169,7 +169,10 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
       await sendPasswordResetEmail(auth, email);
       return { success: true };
     } catch (e: any) {
-      return { success: false, error: e.message };
+      let msg = e.message;
+      if (msg.includes('(auth/invalid-email)')) msg = 'Invalid email address.';
+      if (msg.includes('(auth/too-many-requests)')) msg = 'Too many attempts. Please try again later.';
+      return { success: false, error: msg };
     }
   };
 
